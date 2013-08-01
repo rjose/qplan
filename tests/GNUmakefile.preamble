@@ -1,0 +1,2 @@
+test_work_C_FILES += ../work.c ../tag.c ../assoc_array.c
+test_tags_C_FILES += ../tag.c ../assoc_array.c
