@@ -1,3 +1,3 @@
 #!/usr/bin/zsh
 
-grep -i "track:$1"
+egrep -i "track:($1)"
