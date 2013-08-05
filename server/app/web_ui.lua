@@ -24,11 +24,6 @@ local APP_INDEX = 2
 local DEVICE_INDEX = 3
 local APP_RESOURCE_INDEX = 4
 
-function WebUI.init(a_plan, a_staff)
---        plan = a_plan
---        staff = a_staff
-end
-
 
 -- REQUEST HANDLING -----------------------------------------------------------
 --

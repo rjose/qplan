@@ -42,8 +42,8 @@ Implementation
 . Get minimal qplan server running [X][X][X][X][X][X]
 . Establish websocket connection with server [X][X][X][X][][]
 . Handle websocket PING, CLOSE, and echo [X][X][X][X][X][][]
-. Push output of rbt to a browser [][][][][][]
 . rbt is implemented as series of pipes [][][][][]
+. Push output of rbt to a browser [][][][][][]
 
 1 - Write google doc spreadsheet to stdout
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -216,6 +216,39 @@ break the tests... I think what I'll do is fix the PONG case and then circle
 back to the websocket library when I work on that in earnest. Alright, I was
 able to get the PING/PONG to work. Technically, I'm done so let's check in and
 then rethink my git strategy.
+
+
+6 - rbt is implemented as series of pipes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Alright, we're finally at the point where we were aiming at from the start: to
+replace much of the lua app logic with shell scripts that can be composed. I
+suppose the first step is to take a sweep through the code and identify which
+files can be deleted and which need to be ported. Once we have that, we can
+delete what's no longer needed and focus on converting the other code to generic
+scripts.
+
+Here are files that we may no longer need:
+
+- app/data.lua (for reading data from file)
+- app/lua_ui.lua (pure lua shell)
+- app/writer.lua (write data out)
+
+Here are files that we'll need to rethink/port:
+
+- app/json_format.lua (needed for formatting ajax responses)
+- app/person.lua (summing bandwidth)
+- app/qplan.lua (qplan init)
+- app/reader.lua (parse tags)
+- app/select.lua (filter and group)
+- app/text_format.lua (text-based reports)
+- app/web_ui.lua (handle http and websocket requests)
+- app/work.lua (parse estimates, create work filters, computes merged triage,
+  get demand by skill, compute running demand)
+
+Can we store people and work in straight tables and have generic
+scripts/programs that can manipulate the tags and filter data, etc.?
+
+I should look at the rbt report and see if I can generalize it.
 
 Notes
 -----
