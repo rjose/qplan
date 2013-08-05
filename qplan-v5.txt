@@ -266,6 +266,10 @@ track. We also want to get all staff within a track. I wonder if we can use
 process substitution in the shell for this. I just added an example of doing
 this (rbt.sh). Let's check in.
 
+Alright, let's create a route that dumps all of the work items in a format that
+we can manipulate. We'll start by just dumping the rankings and names...we also
+dumped the rest.
+
 Notes
 -----
 I'm using a link:https://github.com/craigmj/json4lua[json lua package].

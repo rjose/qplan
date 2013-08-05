@@ -29,6 +29,10 @@ local APP_RESOURCE_INDEX = 4
 
 -- REQUEST HANDLING -----------------------------------------------------------
 --
+-- -- TEXT ROUTES
+--
+-- These will become the primary routes going forward
+--
 function handle_app_web_staff(req)
         -- "select" staff
         local staff = staff
@@ -173,6 +177,52 @@ function handle_app_web_request(req)
         return RequestRouter.construct_response(400, "application/json", "")
 end
 
+function handle_app_web_staff(req)
+        -- "select" staff
+        local staff = staff
+
+        -- Group by skill
+        local people_by_skill, skill_tags = Select.group_people_by_skill(staff)
+
+        -- Format results
+        local result_str = JsonFormat.format_people_hash(
+                                       people_by_skill, skill_tags, plan, staff)
+
+        -- Return response
+        return RequestRouter.construct_response(200, "application/json", result_str)
+end
+
+
+-- TEXT ROUTES ----------------------------------------------------------------
+--
+-- These will become the primary routes going forward
+
+function handle_app_text_work(req)
+        local work = {}
+
+        for rank, id in ipairs(plan.work_items) do
+                local w = plan.work_table[id]
+                work[#work+1] = string.format("%d\t%s\t%s\t%s\t%s\t%s",
+                        rank, id, w.name,
+                        Writer.tags_to_string(w.estimates, ","),
+                        w:merged_triage(),
+                        Writer.tags_to_string(w.tags, ","))
+        end
+
+        local result_str = table.concat(work, "\n")
+
+        -- Return response
+        return RequestRouter.construct_response(200, "application/text", result_str)
+end
+
+function handle_app_text_request(req)
+        if req.path_pieces[APP_RESOURCE_INDEX] == 'work' then
+                return handle_app_text_work(req)
+        end
+
+        return RequestRouter.construct_response(400, "application/text", "")
+end
+
 
 
 -- REQUEST ROUTING ------------------------------------------------------------
@@ -185,6 +235,9 @@ function app_router(req)
 
         if req.path_pieces[DEVICE_INDEX] == "web" then
                 return handle_app_web_request(req)
+        -- Looking for something like "/app/text/work"
+        elseif req.path_pieces[DEVICE_INDEX] == "text" then
+                return handle_app_text_request(req)
         end
 
         return nil
