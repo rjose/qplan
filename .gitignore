@@ -1,2 +1,4 @@
 data.txt
 conditioned_data.txt
+*.swp
+*/obj/
