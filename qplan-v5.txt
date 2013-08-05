@@ -246,9 +246,20 @@ Here are files that we'll need to rethink/port:
   get demand by skill, compute running demand)
 
 Can we store people and work in straight tables and have generic
-scripts/programs that can manipulate the tags and filter data, etc.?
+scripts/programs that can manipulate the tags and filter data, etc? Let's bring
+over some real data so I can at least manually verify anything that I'm
+changing. I had to install the
+link:https://github.com/diegonehab/luasocket[socket.http]
+module for lua as well and do a "make install-both" to get both 5.1 and 5.2
 
 I should look at the rbt report and see if I can generalize it.
+
+.Debugging
+Alright, I'm running into a problem where the json that I'm sending to the
+browser is invalid. Let's see if I can figure out what's going on. The data in
+qplan seems to be correct. I wonder if I'm running into an issue with the json
+module. It looks like there was an extra "'" character that wasn't escaped
+properly. Seems to be a behavior difference between chromium and os x.
 
 Notes
 -----
