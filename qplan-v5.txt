@@ -231,10 +231,10 @@ Here are files that we may no longer need:
 
 - app/data.lua (for reading data from file)
 - app/lua_ui.lua (pure lua shell)
-- app/writer.lua (write data out)
 
 Here are files that we'll need to rethink/port:
 
+- app/writer.lua (write tags)
 - app/json_format.lua (needed for formatting ajax responses)
 - app/person.lua (summing bandwidth)
 - app/qplan.lua (qplan init)
@@ -252,7 +252,6 @@ changing. I had to install the
 link:https://github.com/diegonehab/luasocket[socket.http]
 module for lua as well and do a "make install-both" to get both 5.1 and 5.2
 
-I should look at the rbt report and see if I can generalize it.
 
 .Debugging
 Alright, I'm running into a problem where the json that I'm sending to the
@@ -260,6 +259,12 @@ browser is invalid. Let's see if I can figure out what's going on. The data in
 qplan seems to be correct. I wonder if I'm running into an issue with the json
 module. It looks like there was an extra "'" character that wasn't escaped
 properly. Seems to be a behavior difference between chromium and os x.
+
+.Making composable scripts
+We want to start by getting all of the work and then filter out triage and
+track. We also want to get all staff within a track. I wonder if we can use
+process substitution in the shell for this. I just added an example of doing
+this (rbt.sh). Let's check in.
 
 Notes
 -----
