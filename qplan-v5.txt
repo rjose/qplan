@@ -269,7 +269,10 @@ this (rbt.sh). Let's check in.
 Alright, let's create a route that dumps all of the work items in a format that
 we can manipulate. We'll start by just dumping the rankings and names...we also
 dumped the rest. Now, let's see if we can filter out by track. Done. Alright,
-let's see if we can add a triage filter next.
+let's see if we can add a triage filter next. I think awk is the best choice for
+this since we'll be looking at a particular column. We should probably allow the
+column to specified. Actually, this should be a generic number filter that takes
+a min and max for a column. Done. Let's check this in.
 
 After that, let's have a script that generates a list of all tracks.
 
