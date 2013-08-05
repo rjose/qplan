@@ -1,3 +1,4 @@
+local Work = require('work')
 local func = require('functional')
 
 local Select = {}
