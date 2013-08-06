@@ -319,6 +319,12 @@ info at the end. To do the group by cleanly, we should have another script that
 can extract a packed column (like track). Let's write this one next. I think awk
 is the way to go. Done.
 
+We should do a group by filter next. I was thinking about just bundling this
+with whatever program would do the final work, but it seems that we should do
+this separately -- it makes it easier for other programs. Let's use lua for this
+since its arrays are easier to use as arrays than awk. Alright, group by works.
+Tried it with tracks and triage. Let's check in.
+
 Notes
 -----
 I'm using a link:https://github.com/craigmj/json4lua[json lua package].
