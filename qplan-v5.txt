@@ -312,7 +312,12 @@ Alright, at this point, I think we have everything we need to generate the same
 information as the web page.
 
 Let's examine the output of rbt next and see if we can generalize the text-based
-report.
+report. Alright, we have a list of work items grouped by track and with summary
+info in each grouping. Then we have a total summary. Conceptually, we want to
+take all work, filter by triage, and then group by track and have some summary
+info at the end. To do the group by cleanly, we should have another script that
+can extract a packed column (like track). Let's write this one next. I think awk
+is the way to go. Done.
 
 Notes
 -----
