@@ -300,6 +300,11 @@ something like: Apps:23.5,Native:21.5,Web:8.6. Done!
 The next thing we need to do is compute a running total for the work items. We
 just need to pick off the estimate column and then run it through a script.
 Since we've already coded this up in lua, let's run it through a lua script.
+Done!
+
+OK, now we want to compute the running net left. To do this, we need a script
+that can gather the outputs from multiple programs and send them back out in one
+stream. I wrote "stack_stream.sh" for this purpose. Let's check it in.
 
 Notes
 -----
