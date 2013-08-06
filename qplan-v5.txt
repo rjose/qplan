@@ -280,6 +280,19 @@ Next up is selecting staff. We should be able to use the *exact* same filters to
 filter by track. We'll start off by adding a text route similar to work. Looks
 good. Let's check this in.
 
+Now, let's see if we can sum estimates and availability. It seems like the same
+thing at some level. We should be able to sum any skill field. We should
+lowercase the fields first. For supply, we need to multiply by a factor. We
+should take that to be the start and end dates of the quarter filtered through
+the current date. We'll have a one shot sum across people. We'll have a running
+sum across work. We'll have a running net supply given the two. We don't need to
+carry the source data along -- we just want the data.
+
+Alright, let's start with the weeks computation. Here's what I'd like it to do:
+
+- weeks_left.py Q3 (Q3 of current year)
+- weeks_left.py Q2 2014 (Q2 of 2014)
+
 Notes
 -----
 I'm using a link:https://github.com/craigmj/json4lua[json lua package].
