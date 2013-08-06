@@ -325,6 +325,11 @@ this separately -- it makes it easier for other programs. Let's use lua for this
 since its arrays are easier to use as arrays than awk. Alright, group by works.
 Tried it with tracks and triage. Let's check in.
 
+OK, we're finally at the point where we can start creating the rbt function with
+shell pipelines. Let's do this in lua (since we already have functions that can
+update estimates). Alright, I have the general formatting in place. Let's check
+in and then add the required people.
+
 Notes
 -----
 I'm using a link:https://github.com/craigmj/json4lua[json lua package].
@@ -348,3 +353,6 @@ aren't well separated.
 Need to handle message fragments. This should be in websockets.
 
 Need to write a README that shows how to use these scripts
+
+Should add a filter that just converts work estimates into man-weeks (not a
+running sum). It should also add a total.
