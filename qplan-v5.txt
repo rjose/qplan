@@ -274,7 +274,7 @@ this since we'll be looking at a particular column. We should probably allow the
 column to specified. Actually, this should be a generic number filter that takes
 a min and max for a column. Done. Let's check this in.
 
-After that, let's have a script that generates a list of all tracks.
+After that, let's have a script that generates a list of all tracks. Done!
 
 Notes
 -----
