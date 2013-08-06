@@ -328,7 +328,9 @@ Tried it with tracks and triage. Let's check in.
 OK, we're finally at the point where we can start creating the rbt function with
 shell pipelines. Let's do this in lua (since we already have functions that can
 update estimates). Alright, I have the general formatting in place. Let's check
-in and then add the required people.
+in and then add the required people. Now to get the required people, we'll need
+to grab some functions from "running_estimate_sum.lua". Let's add them to a
+lua_modules directory. Done. Also finished up the rbt script. Whew!
 
 Notes
 -----
