@@ -50,7 +50,7 @@ function print_footer(est)
         end
         local manpower = {}
         for k, v in pairs(est) do
-                manpower[k] = string.format("%.1f", est[k]/weeks_left)
+                manpower[k] = string.format("%4.1f", est[k]/weeks_left)
         end
 
         print(string.format("     %s", string.rep("-", 50)))
