@@ -297,6 +297,10 @@ OK, let's see if we can do a skill supply computation next. We should pipe the
 weeks computation and the staff list into a script. The output should look
 something like: Apps:23.5,Native:21.5,Web:8.6. Done!
 
+The next thing we need to do is compute a running total for the work items. We
+just need to pick off the estimate column and then run it through a script.
+Since we've already coded this up in lua, let's run it through a lua script.
+
 Notes
 -----
 I'm using a link:https://github.com/craigmj/json4lua[json lua package].
