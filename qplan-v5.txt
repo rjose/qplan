@@ -308,6 +308,12 @@ stream. I wrote "stack_stream.sh" for this purpose. Let's check it in. Next, we
 need to have a script that can pick the pieces apart. Let's try doing this in
 awk. Done! Let's check in.
 
+Alright, at this point, I think we have everything we need to generate the same
+information as the web page.
+
+Let's examine the output of rbt next and see if we can generalize the text-based
+report.
+
 Notes
 -----
 I'm using a link:https://github.com/craigmj/json4lua[json lua package].
