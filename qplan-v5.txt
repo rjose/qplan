@@ -304,7 +304,9 @@ Done!
 
 OK, now we want to compute the running net left. To do this, we need a script
 that can gather the outputs from multiple programs and send them back out in one
-stream. I wrote "stack_stream.sh" for this purpose. Let's check it in.
+stream. I wrote "stack_stream.sh" for this purpose. Let's check it in. Next, we
+need to have a script that can pick the pieces apart. Let's try doing this in
+awk. Done! Let's check in.
 
 Notes
 -----
@@ -327,3 +329,5 @@ Refactoring takes a while sometimes, especially when there are variables that
 aren't well separated.
 
 Need to handle message fragments. This should be in websockets.
+
+Need to write a README that shows how to use these scripts
