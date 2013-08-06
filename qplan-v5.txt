@@ -293,6 +293,10 @@ Alright, let's start with the weeks computation. Here's what I'd like it to do:
 - weeks_left.py Q3 (Q3 of current year)
 - weeks_left.py Q2 2014 (Q2 of 2014)
 
+OK, let's see if we can do a skill supply computation next. We should pipe the
+weeks computation and the staff list into a script. The output should look
+something like: Apps:23.5,Native:21.5,Web:8.6. Done!
+
 Notes
 -----
 I'm using a link:https://github.com/craigmj/json4lua[json lua package].
