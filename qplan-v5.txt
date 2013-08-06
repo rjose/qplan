@@ -42,7 +42,7 @@ Implementation
 . Get minimal qplan server running [X][X][X][X][X][X]
 . Establish websocket connection with server [X][X][X][X][][]
 . Handle websocket PING, CLOSE, and echo [X][X][X][X][X][][]
-. rbt is implemented as series of pipes [][][][][]
+. rbt is implemented as series of pipes [X][X][X][X][X]<X><X><X><X><X><X><X><X>
 . Push output of rbt to a browser [][][][][][]
 
 1 - Write google doc spreadsheet to stdout
@@ -331,6 +331,9 @@ update estimates). Alright, I have the general formatting in place. Let's check
 in and then add the required people. Now to get the required people, we'll need
 to grab some functions from "running_estimate_sum.lua". Let's add them to a
 lua_modules directory. Done. Also finished up the rbt script. Whew!
+
+One thing we should do before wrapping up is documenting all of the scripts I've
+put together and how to use them.
 
 Notes
 -----
