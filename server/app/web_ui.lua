@@ -215,9 +215,28 @@ function handle_app_text_work(req)
         return RequestRouter.construct_response(200, "application/text", result_str)
 end
 
+function handle_app_text_staff(req)
+        local staff = staff
+        local rows = {}
+
+        for _, person in ipairs(staff) do
+                rows[#rows+1] = string.format("%s\t%s\t%s\t%s",
+                        person.id, person.name,
+                        Writer.tags_to_string(person.skills, ","),
+                        Writer.tags_to_string(person.tags, ","))
+        end
+
+        local result_str = table.concat(rows, "\n")
+
+        -- Return response
+        return RequestRouter.construct_response(200, "application/text", result_str)
+end
+
 function handle_app_text_request(req)
         if req.path_pieces[APP_RESOURCE_INDEX] == 'work' then
                 return handle_app_text_work(req)
+        elseif req.path_pieces[APP_RESOURCE_INDEX] == 'staff' then
+                return handle_app_text_staff(req)
         end
 
         return RequestRouter.construct_response(400, "application/text", "")

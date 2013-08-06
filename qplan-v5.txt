@@ -276,6 +276,10 @@ a min and max for a column. Done. Let's check this in.
 
 After that, let's have a script that generates a list of all tracks. Done!
 
+Next up is selecting staff. We should be able to use the *exact* same filters to
+filter by track. We'll start off by adding a text route similar to work. Looks
+good. Let's check this in.
+
 Notes
 -----
 I'm using a link:https://github.com/craigmj/json4lua[json lua package].
