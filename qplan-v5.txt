@@ -145,7 +145,7 @@ Implementation
 . Establish websocket connection with server [X][X][X][X][][]
 . Handle websocket PING, CLOSE, and echo [X][X][X][X][X][][]
 . rbt is implemented as series of pipes [X][X][X][X][X]<X><X><X><X><X><X><X><X>
-. Push output of rbt to a browser [][][][][][]
+. Push output of rbt to a browser [X][][][][][]
 
 1 - Write google doc spreadsheet to stdout
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -452,7 +452,14 @@ that just shows raw text and "PIECHART" that renders the data in a chart? Is it
 straight text or JSON?
 
 Let's start by establishing a websocket connection from a browser. We'll make
-the websocket variable a global for now. Done. Let's check this in.
+the websocket variable a global for now. Done. Let's check this in. OK, let's
+move back a step and look at how to store and reference websocket connections in
+lua. I think all we need is the connfd. When a connection is established, we
+should call a lua function to register it; when it closes, we should call a
+function to deregsiter it. We'll also need to expose a function that can send
+text frames.
+
+OK, got a thread running through to register_connection. Let's check this in.
 
 Notes
 -----

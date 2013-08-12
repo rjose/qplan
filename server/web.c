@@ -33,6 +33,7 @@ static int read_request_string(int, char **, size_t *);
 static int read_request_body(int, const char *, char **, size_t *);
 static int handle_http_request(int, QPlanContext *, const char *, size_t,
                                                     const char *, size_t);
+static int register_ws_connection(int, QPlanContext *);
 
 
 // TODO: Allow port to be configured
@@ -101,6 +102,37 @@ void *web_routine(void *arg)
         return NULL;
 }
 
+static int register_ws_connection(int connfd, QPlanContext *context)
+{
+        int error;
+        lua_State *L_main = context->main_lua_state;
+        int result = 0;
+
+        lock_main(context);
+
+        lua_getglobal(L_main, "WebSocket"); // This is set when requiring qplan.lua
+        lua_pushstring(L_main, "register_connection");
+        lua_gettable(L_main, -2);
+        lua_pushinteger(L_main, connfd);
+        error = lua_pcall(L_main, 1, 1, 0);
+        if (error) {
+                fprintf(stderr, "%s\n", lua_tostring(L_main, -1));
+                lua_pop(L_main, 1);
+                result = -1;
+                goto error;
+        }
+
+        /*
+         * Get response from lua
+         */
+        result = lua_tointeger(L_main, -1);
+        lua_pop(L_main, 1);
+
+
+error:
+        unlock_main(context);
+        return result;
+}
 
 
 static int handle_websocket_request(int connfd, QPlanContext *context,
@@ -119,6 +151,9 @@ static int handle_websocket_request(int connfd, QPlanContext *context,
         res_str = ws_complete_handshake(request_string);
         my_writen(connfd, res_str, strlen(res_str));
         free((char *)res_str);
+        register_ws_connection(connfd, context);
+
+
 
         /*
          * Read and handle messages
