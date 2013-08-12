@@ -1,39 +1,141 @@
 QPlan v5
 ========
 Rino Jose <@rjose>
-v1, Jul 25, 2013: Initial version
+v2, Aug 11, 2013: Revised text
 
 Overview
 --------
 I've been reading the
-link:http://www.amazon.com/The-UNIX-Philosophy-ebook/dp/B002OL2G4G[Unix
-Philsophy] again over the past few days. Something that's been nagging me for a
-while with qplan is that I haven't written it in a unixy way. It has a captive
-user interface, it doesn't interface with other programs, etc. In this iteration
-of qplan, I'd like to try to make the pieces smaller and have the shell be the
-primary interaction mechanism. We'll still need a server that can accept and
-handle requests, but we'll interact with it differently from the commandline.
-I'm thinking we should have a program that I can pipe text into that could be
-interpreted as commands. We'd specify (or configure) the server/port/path that
-these commands would be sent to. The program would then write the output from
-the server to stdout. All the output should be in a form that can be easily
-processed by awk (e.g., tab separated fields). 
+link:http://www.amazon.com/The-UNIX-Philosophy-ebook/dp/B002OL2G4G[
+Unix Philsophy] again, and it's helped crystallize something that's been nagging me
+about qplan: it's not very unix-y. For instance:
 
-If we organized our programs this way, we could have a separate formatting
-program that would know how to take data (or sets of data) and prepare the
-appropriate output. One would be the create more "standardized" output for
-further processing. We should be able to switch this to an ascii report or to
-JSON. I think these should be separate programs.
+        - It has a captive user interface
+        - It doesn't interface with other programs
+        - The program isn't a filter
+        - It was starting to get too big and monolithic
 
-The server would also use the shell to pipe output from program to program to
-generate a final result.
+In this next version of qplan, I'd like to try to make the components of qplan
+smaller and have them all be filters. I want the programs to work with other
+unix utilities to manipulate and transform data. Ideally, we should be able to
+pipe data starting from Google spreadsheets, through all of our filters, and to
+our qplan server in a single pipeline. If we can do this, then we can store the
+data at any point and manipulate it at will, filtering and grouping on demand.
+Instead of having a commandline server shell, we'll just have a unix commandline
+shell like zsh.
 
-When we want to broadcast data, we could put the pipe together first, and then
-have the final part of the pipe be something that could send data to others via
-an HTTP request or a websocket. A websocket might be the way to go if we needed
-to make decisions on what data to ask for based on some initial data from the
-server -- in effect, if we needed the client and server to have a conversation
-before getting the final data.
+If we organized our programs this way, we could have separate formatting
+programs that would know how to take data (or sets of data) and prepare the
+appropriate output. We might have some for purely raw text output and some that
+produce JSON.
+
+When we want to broadcast data, we could send data through a pipe that
+ultimately constructs an http request to the qplan server which would push data
+over websockets to all clients.
+
+
+Architecture
+------------
+
+.Qplan Server
+The qplan server is the communications hub. It has the following
+responsibilities:
+
+        - Handle HTTP requests (web app and shell requests)
+        - Establish websocket connections for broadcasting to clients
+        - Maintain qplan data in a lua space
+
+We'll write this server as a small C program for a couple of reasons. The first
+is that we want this to be very light. We won't use any frameworks. We want this
+to be simple and unencumbered. The second reason is that I want to understand
+how the networking code works at a low level. The third is that I want to
+sharpen my C skills.
+
+We'll write the application logic in lua. Lua interfaces very easily with C.
+It's also very light and performant. It's also sufficiently high level and
+dynamic to enable rapid development. It can also be written in a way so that
+functionality can be shared between the server and the other code written in lua
+(e.g., the filters).
+
+
+.Generic filters
+There are certain data flow patterns that we'll see over and over again. One is
+reading data from managed sources (like Google docs or JIRA) and writing it to a
+pipeline that conditions the data and ultimately sends it to the qplan server.
+
+Another pattern is starting a pipeline that pulls data from the qplan server
+performs some computation on it to generate output. Here's a description of what
+some of the generic filters do:
+
+        - *gcat.py*: reads Google doc spreadsheet keys from stdin and writes the
+          contents to stdout.
+        - *stack_streams.sh*: Combines the output from several pipelines and
+          writes it to stdout with some header info for each pipe.
+        - *extract_packed.sh*: Extracts a field from a column and adds it at the
+          end of the output as the last column. An example of a packed column
+          value is "track:Ops,owner:Bill"
+        - *group_by.lua*: Rearranges the rows of data from stdin so they're
+          grouped by the values in a specified columns. The groupings are
+          sorted by the specified column values.
+        - *filter_num.sh*: Selects rows where the specified column values are
+          within the specified range.
+
+The generic filters should be copied to a standard location and used across
+applications.
+
+.QPlan filters: Initialization
+These filters are used to condition data from Google docs and initialize a qplan
+server.
+
+        - *qplan_condition.awk*: Takes work and staff spreadsheet data and
+          conditions it so it can be read by the qplan server.
+        - *qplan_updater.lua*: Reads conditioned data from stdin and constructs
+          a set of http requests to update the data in a qplan server.
+        - *qplan_pull.sh*: Defines an overall pipeline to pull data from Google
+          docs and send it to a qplan server.
+
+
+.QPlan filters: Computation
+These filters are used to do computation on estimate totals and net supply.
+
+        - *weeks_left.py*: Returns the number of weeks left in the specified
+          quarter.
+        - *running_estimate_sum.lua*: Reads rows of work items from stdin,
+          parses the estimates, and then writes running totals of the required
+          skills.
+        - *supply_sum.sh*: Reads rows of staff information and sums available
+          skills for a specified quarter (using current day to not count time in
+          the past).
+        - *net_left.awk*: Reads work items and skill supply from the output of
+          stack_streams.sh and writes a running list of net supply left to
+          stdout.
+
+
+.QPlan filters: Reports
+These are used to generate reports raw text and JSON reports. These should be
+pipable to the qplan server as part of a "live" feed that we can use in
+meetings.
+
+        - *rbt.lua*: ("report by track") Reads rows of work items grouped by
+          track and with a track column and constructs a raw text report of the
+          work in each track along with totals for each track.
+
+.QPlan filters: Utils
+These filters are nearly generic (perhaps we should make them truly generic?)
+
+        - *filter_track.sh*: Selects rows from stdin that contain the specified
+          track.
+        - *tracks.sh*: Takes a list of work items and writes out tracks in
+          sorted order. 
+
+
+Note on Modules
+~~~~~~~~~~~~~~~
+Modules shared between any two components should be pulled out into their own
+development repositories. These should also be installed in standard locations
+so we can leverage them as much as possible.
+
+
 
 Implementation
 --------------
@@ -258,7 +360,7 @@ Alright, I'm running into a problem where the json that I'm sending to the
 browser is invalid. Let's see if I can figure out what's going on. The data in
 qplan seems to be correct. I wonder if I'm running into an issue with the json
 module. It looks like there was an extra "'" character that wasn't escaped
-properly. Seems to be a behavior difference between chromium and os x.
+properly. Seems to be a behavior difference between chromium and chrome on OS X.
 
 .Making composable scripts
 We want to start by getting all of the work and then filter out triage and
@@ -340,24 +442,17 @@ Notes
 I'm using a link:https://github.com/craigmj/json4lua[json lua package].
 Basically just installing the json writing part in the lua path.
 
-Thoughts
---------
-We should use link:https://github.com/burnash/gspread[gspread] to grab source
-data from google docs.
-
-I need to document the scripts so they can describe what's expected of them.
-
-I also want to figure out how to test the pieces and the pipeline.
-
-I looked through how the node.js ws module starts a handshake. They just use a
-date. I guess we could use that, too.
+I'm using link:https://github.com/burnash/gspread[gspread] to grab data from
+google doc spreadsheets.
 
 Refactoring takes a while sometimes, especially when there are variables that
 aren't well separated.
 
-Need to handle message fragments. This should be in websockets.
 
-Need to write a README that shows how to use these scripts
-
-Should add a filter that just converts work estimates into man-weeks (not a
-running sum). It should also add a total.
+Action Items
+------------
+- Use a common format for stacked output (e.g., make gcat.py match stackstreams)
+- Comment the filter scripts
+- Make utils into generic filters
+- Set up tests for filters and pipeline
+- Scrub files: delete files and organize lua files into modules
