@@ -469,7 +469,8 @@ register this function from qplan.c. I'll do a little test by calling
 enhancement is to write a broadcast function in lua. We'll test it by sending to
 multiple clients. Should also test when one of them closes. Actually, just
 tested this by writing to a bogus file descriptor -- it brings down the whole
-app. Let's see if we can fix this. Done.
+app. Let's see if we can fix this. Done. OK, now we can write our broadcast
+function. Done! Let's check in.
 
 
 Notes

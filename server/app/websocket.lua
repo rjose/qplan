@@ -14,4 +14,10 @@ function WebSocket.deregister_connection(connfd)
         return 1
 end
 
+function WebSocket.broadcast(message)
+        for k, _ in pairs(connections) do
+                push_message(k, message)
+        end
+end
+
 return WebSocket
