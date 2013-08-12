@@ -22,6 +22,8 @@ extern void err_abort(int status, const char *message);
 #define MAXLINE 1024
 
 #define CONTENT_LENGTH_KEY_LEN 16
+#define REGISTRATION_FUNCNAME "register_connection"
+#define DEREGISTRATION_FUNCNAME "deregister_connection"
 
 /*
  * Static declarations
@@ -33,7 +35,9 @@ static int read_request_string(int, char **, size_t *);
 static int read_request_body(int, const char *, char **, size_t *);
 static int handle_http_request(int, QPlanContext *, const char *, size_t,
                                                     const char *, size_t);
+static int registration_helper(const char *, int, QPlanContext *);
 static int register_ws_connection(int, QPlanContext *);
+static int deregister_ws_connection(int, QPlanContext *);
 
 
 // TODO: Allow port to be configured
@@ -102,7 +106,8 @@ void *web_routine(void *arg)
         return NULL;
 }
 
-static int register_ws_connection(int connfd, QPlanContext *context)
+static int registration_helper(const char *funcname, int connfd,
+                                                     QPlanContext *context)
 {
         int error;
         lua_State *L_main = context->main_lua_state;
@@ -111,7 +116,7 @@ static int register_ws_connection(int connfd, QPlanContext *context)
         lock_main(context);
 
         lua_getglobal(L_main, "WebSocket"); // This is set when requiring qplan.lua
-        lua_pushstring(L_main, "register_connection");
+        lua_pushstring(L_main, funcname);
         lua_gettable(L_main, -2);
         lua_pushinteger(L_main, connfd);
         error = lua_pcall(L_main, 1, 1, 0);
@@ -134,6 +139,16 @@ error:
         return result;
 }
 
+static int register_ws_connection(int connfd, QPlanContext *context)
+{
+        return registration_helper(REGISTRATION_FUNCNAME, connfd, context);
+}
+
+
+static int deregister_ws_connection(int connfd, QPlanContext *context)
+{
+        return registration_helper(DEREGISTRATION_FUNCNAME, connfd, context);
+}
 
 static int handle_websocket_request(int connfd, QPlanContext *context,
                                                 const char* request_string)
@@ -154,7 +169,6 @@ static int handle_websocket_request(int connfd, QPlanContext *context,
         register_ws_connection(connfd, context);
 
 
-
         /*
          * Read and handle messages
          */
@@ -173,6 +187,7 @@ static int handle_websocket_request(int connfd, QPlanContext *context,
                         free(response_frame);
                 }
                 else if (frame_type == WS_FT_CLOSE) {
+                        deregister_ws_connection(connfd, context);
                         break;
                 }
         }

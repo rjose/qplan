@@ -460,6 +460,8 @@ function to deregsiter it. We'll also need to expose a function that can send
 text frames.
 
 OK, got a thread running through to register_connection. Let's check this in.
+Now, let's actually store the connection and then add the deregister
+function...Done. Let's check in.
 
 Notes
 -----
@@ -471,6 +473,9 @@ google doc spreadsheets.
 
 Refactoring takes a while sometimes, especially when there are variables that
 aren't well separated.
+
+Need some mechanism for deregistering connections when they close. Perhaps we
+can do this when there's a failed websocket message?
 
 
 Action Items
