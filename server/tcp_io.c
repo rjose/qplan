@@ -60,11 +60,15 @@ writen(int fd, const void *vptr, size_t n)
 }
 /* end writen */
 
-void
+int
 my_writen(int fd, const void *ptr, size_t nbytes)
 {
-	if (writen(fd, ptr, nbytes) != nbytes)
-		err(1, "writen error");
+        int result = 0;
+	if (writen(fd, ptr, nbytes) != nbytes) {
+		warn("writen error");
+                result = errno;
+        }
+        return result;
 }
 
 

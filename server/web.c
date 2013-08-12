@@ -39,6 +39,7 @@ static int registration_helper(const char *, int, QPlanContext *);
 static int register_ws_connection(int, QPlanContext *);
 static int deregister_ws_connection(int, QPlanContext *);
 
+static int push_message(lua_State *);
 
 // TODO: Allow port to be configured
 /*
@@ -106,6 +107,20 @@ void *web_routine(void *arg)
         return NULL;
 }
 
+static int lua_registration_helper(const char *funcname, int connfd,
+                                                             lua_State *L)
+{
+        int error = 0;
+
+        lua_getglobal(L, "WebSocket"); // This is set when requiring qplan.lua
+        lua_pushstring(L, funcname);
+        lua_gettable(L, -2);
+        lua_pushinteger(L, connfd);
+        error = lua_pcall(L, 1, 1, 0);
+
+        return error;
+}
+
 static int registration_helper(const char *funcname, int connfd,
                                                      QPlanContext *context)
 {
@@ -115,11 +130,8 @@ static int registration_helper(const char *funcname, int connfd,
 
         lock_main(context);
 
-        lua_getglobal(L_main, "WebSocket"); // This is set when requiring qplan.lua
-        lua_pushstring(L_main, funcname);
-        lua_gettable(L_main, -2);
-        lua_pushinteger(L_main, connfd);
-        error = lua_pcall(L_main, 1, 1, 0);
+        error = lua_registration_helper(funcname, connfd, L_main);
+
         if (error) {
                 fprintf(stderr, "%s\n", lua_tostring(L_main, -1));
                 lua_pop(L_main, 1);
@@ -389,7 +401,6 @@ error:
 }
 
 
-// TODO: Declare this
 static int push_message(lua_State *L)
 {
         uint8_t connfd;
@@ -400,8 +411,17 @@ static int push_message(lua_State *L)
         connfd = luaL_checkunsigned(L, 1);
         message = luaL_checkstring(L, 2);
 
+        /*
+         * Write data to connfd. If something goes wrong, deregister this
+         * channel.
+         */
         frame_len = ws_make_text_frame(message, NULL, &response_frame);
-        my_writen(connfd, response_frame, frame_len);
+        if (my_writen(connfd, response_frame, frame_len) != 0) {
+                if (lua_registration_helper(DEREGISTRATION_FUNCNAME,connfd,L)) {
+                        fprintf(stderr, "%s\n", lua_tostring(L, -1));
+                        lua_pop(L, 1);
+                }
+        }
         free(response_frame);
 
         return 0; /* No results */

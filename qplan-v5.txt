@@ -145,7 +145,7 @@ Implementation
 . Establish websocket connection with server [X][X][X][X][][]
 . Handle websocket PING, CLOSE, and echo [X][X][X][X][X][][]
 . rbt is implemented as series of pipes [X][X][X][X][X]<X><X><X><X><X><X><X><X>
-. Push output of rbt to a browser [X][X][][][][]
+. Push output of rbt to a browser [X][X][X][][][]
 
 1 - Write google doc spreadsheet to stdout
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -465,7 +465,12 @@ function...Done. Let's check in. Now, we need register a C function that we can
 call from lua to broadcast a websocket message. Let's register something empty
 first and then hook it up. This will be called via a web request. We should
 register this function from qplan.c. I'll do a little test by calling
-"push_message" from the repl. Done! Let's check this in.
+"push_message" from the repl. Done! Let's check this in. Alright, one small
+enhancement is to write a broadcast function in lua. We'll test it by sending to
+multiple clients. Should also test when one of them closes. Actually, just
+tested this by writing to a bogus file descriptor -- it brings down the whole
+app. Let's see if we can fix this. Done.
+
 
 Notes
 -----
