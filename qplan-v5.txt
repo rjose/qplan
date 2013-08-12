@@ -472,6 +472,31 @@ tested this by writing to a bogus file descriptor -- it brings down the whole
 app. Let's see if we can fix this. Done. OK, now we can write our broadcast
 function. Done! Let's check in.
 
+Now that we have a thread running through, I should be able to add a "broadcast"
+endpoint that takes JSON. What should the format of the message be? How about
+something like this:
+
+{"command": "raw",
+ "text": "Some formatted message"}
+
+{"command": "piechart",
+ "labels": ["Alpha", "Beta", "Gamma"],
+ "values": [10, 20, 30]}
+
+Let's add the server endpoint first and have it just print what it got to
+console. I'll use curl like this:
+
+----
+curl -X POST -H "Content-type: application/json"
+-d '{"command": "raw", "text": "Howdy"}' localhost:8888/broadcast
+----
+
+Let's broadcast to clients and then check in...Done!
+
+After that, let's put an angular page together for showing the raw
+text. After that, we can write a "broadcast script" to send data to that
+endpoint.
+
 
 Notes
 -----

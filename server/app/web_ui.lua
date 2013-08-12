@@ -26,6 +26,7 @@ local APP_INDEX = 2
 local DEVICE_INDEX = 3
 local APP_RESOURCE_INDEX = 4
 
+local BROADCAST_INDEX = 2
 
 -- REQUEST HANDLING -----------------------------------------------------------
 --
@@ -273,8 +274,11 @@ function resource_router(req)
                         work_array = {}
                         lines = req.body:split("\n")
                         for i, l in ipairs(lines) do
-                                work_array[#work_array+1] = Reader.construct_work(l)
+                                work_array[#work_array+1] =
+                                                      Reader.construct_work(l)
                         end
+                        return RequestRouter.construct_response(200,
+                                                       "application/text", "")
 
                 elseif resource == 'assignments' then
                         staff = {}
@@ -282,6 +286,8 @@ function resource_router(req)
                         for _, l in ipairs(lines) do
                                 staff[#staff+1] = Reader.construct_person(l)
                         end
+                        return RequestRouter.construct_response(200,
+                                                       "application/text", "")
                 elseif resource == 'plan' then
                         -- TODO: Move this to the appropriate location
                         local num_weeks = 13
@@ -303,13 +309,29 @@ function resource_router(req)
                         plan.work_items = work_items
                         plan.work_table = work_table
                         print("Updating plan")
+                        return RequestRouter.construct_response(200,
+                                                       "application/text", "")
                 end
         end
 
+        return nil
+
+end
+
+function broadcast_router(req)
+        if req.method ~= "post" or
+           req.path_pieces[BROADCAST_INDEX] ~= "broadcast" then
+                return nil
+        end
+        print(req.body)
+        -- NOTE: WebSocket is a global variable
+        WebSocket.broadcast(req.body)
+        return RequestRouter.construct_response(200, "application/text", "")
 end
 
 -- Set routers
-RequestRouter.routers = {app_router, resource_router, RequestRouter.static_file_router}
+RequestRouter.routers = {app_router, resource_router, broadcast_router,
+                         RequestRouter.static_file_router}
 
 function WebUI.handle_request(req_string, body)
         local req = RequestParser.parse_request(req_string)
