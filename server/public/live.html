@@ -19,7 +19,7 @@
          };
          websocket.onmessage = function(event) {
             console.log("Message!");
-            console.log(evt.data);
+            console.log(event.data);
          };
          websocket.onerror = function(event) {
             console.log("Ugh.");

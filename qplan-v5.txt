@@ -145,7 +145,7 @@ Implementation
 . Establish websocket connection with server [X][X][X][X][][]
 . Handle websocket PING, CLOSE, and echo [X][X][X][X][X][][]
 . rbt is implemented as series of pipes [X][X][X][X][X]<X><X><X><X><X><X><X><X>
-. Push output of rbt to a browser [X][][][][][]
+. Push output of rbt to a browser [X][X][][][][]
 
 1 - Write google doc spreadsheet to stdout
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -461,7 +461,11 @@ text frames.
 
 OK, got a thread running through to register_connection. Let's check this in.
 Now, let's actually store the connection and then add the deregister
-function...Done. Let's check in.
+function...Done. Let's check in. Now, we need register a C function that we can
+call from lua to broadcast a websocket message. Let's register something empty
+first and then hook it up. This will be called via a web request. We should
+register this function from qplan.c. I'll do a little test by calling
+"push_message" from the repl. Done! Let's check this in.
 
 Notes
 -----

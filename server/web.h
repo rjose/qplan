@@ -22,5 +22,6 @@ typedef struct WebHandlerContext_ {
  */
 
 void *web_routine(void *arg);
+int web_register_lua_funcs(lua_State *L);
 
 #endif

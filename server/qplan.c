@@ -36,6 +36,10 @@ int main(int argc, char *argv[])
 
         L_main = init_lua_state();
 
+        // TODO: Register C functions
+        if (web_register_lua_funcs(L_main) != 0)
+                err_abort(-1, "Unable to register web functions");
+
 
         /*
          * Set up context and spin up threads

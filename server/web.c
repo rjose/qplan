@@ -387,3 +387,30 @@ error:
         free(res_str);
         return result;
 }
+
+
+// TODO: Declare this
+static int push_message(lua_State *L)
+{
+        uint8_t connfd;
+        const char *message = NULL;
+        uint8_t *response_frame = NULL;
+        size_t frame_len;
+
+        connfd = luaL_checkunsigned(L, 1);
+        message = luaL_checkstring(L, 2);
+
+        frame_len = ws_make_text_frame(message, NULL, &response_frame);
+        my_writen(connfd, response_frame, frame_len);
+        free(response_frame);
+
+        return 0; /* No results */
+}
+
+int web_register_lua_funcs(lua_State *L)
+{
+        lua_pushcfunction(L, push_message);
+        lua_setglobal(L, "push_message");
+
+        return 0;
+}
