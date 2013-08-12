@@ -437,6 +437,23 @@ lua_modules directory. Done. Also finished up the rbt script. Whew!
 One thing we should do before wrapping up is documenting all of the scripts I've
 put together and how to use them.
 
+
+7 - Push output of rbt to browser
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Alright, what do we need to do here? We need a basic html page that establishes
+a websocket connection with the qplan server. I can follow the websocket echo
+demo to see what that looks like. I should also figure out what the browser API
+looks like for this. On the qplan side, we need to keep track of the "live"
+websocket connections in lua. I'll have to look at the websocket code to see the
+info that's needed. We'll also need to add a route that sends data to the live
+websocket clients. Lastly, we'll need to figure out some protocol for how to
+interpret the data that's sent. For instance, are there directives like "RAW"
+that just shows raw text and "PIECHART" that renders the data in a chart? Is it
+straight text or JSON?
+
+Let's start by establishing a websocket connection from a browser. We'll make
+the websocket variable a global for now. Done. Let's check this in.
+
 Notes
 -----
 I'm using a link:https://github.com/craigmj/json4lua[json lua package].

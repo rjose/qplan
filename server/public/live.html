@@ -1,0 +1,31 @@
+<!doctype html>
+
+<html ng-app>
+<head>
+   <meta charset="UTF-8">
+   <title>QPlan Live</title>
+   <script src="./js/angular.min.js"></script>
+</head>
+
+<body>
+   <script>
+      window.onload = function() {
+         websocket = new WebSocket("ws://localhost:8888");
+         websocket.onopen = function(event) {
+            console.log("Open!");
+         };
+         websocket.onclose = function(event) {
+            console.log("Close!");
+         };
+         websocket.onmessage = function(event) {
+            console.log("Message!");
+            console.log(evt.data);
+         };
+         websocket.onerror = function(event) {
+            console.log("Ugh.");
+         }
+      }
+   </script>
+</body>
+
+</html>
