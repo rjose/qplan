@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "lua.h"
 #include "lauxlib.h"
@@ -31,6 +32,7 @@ void *repl_routine(void *arg)
         // TODO: Hook readline up again
         printf("qplan> ");
         while (fgets(buf, sizeof(buf), stdin) != NULL) {
+                sleep(1);
                 lock_main(ctx);
                 error = luaL_loadstring(L, buf) || lua_pcall(L, 0, 0, 0);
 
