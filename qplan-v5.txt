@@ -573,13 +573,11 @@ OK, now let's add lua_modules as a subtree. Here are the steps:
         . git read-tree --prefix=lua_modules -u lm_branch
         . git commit
 
+Before we finish this piece, let's see if we can clean up the lua modules in
+server/app. I got rid of the writer.lua file by using tags.lua.
 
-TODO: When we hit the root directory, we'll need to add our shunit tests.
-
-- make lua modules into own repo
-- get rid of text format
 - combine writer and reader into tags.lua
-- move all lua files except web_ui into lua_modules
+
 - try to find a way to use existing shell filters instead of the web UI ones
 
 - move generic shell filters to own repo
@@ -613,3 +611,4 @@ Action Items
 - Scrub files: delete files and organize lua files into modules
 - add websocket render of chart data
 - Add favicon
+- Do a documentation sweep

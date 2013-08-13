@@ -1,5 +1,5 @@
 local Reader = require('reader')
-local Writer = require('writer')
+local Tags = require('tags')
 local Person = require('person')
 local Plan = require('plan')
 local Work = require('work')
@@ -135,7 +135,7 @@ function handle_app_web_work(req)
                 new_item.triage = w:merged_triage()
                 new_item.name = w.name
                 new_item.track = w.tags.track
-                new_item.estimate = Writer.tags_to_string(w.estimates, ", ")
+                new_item.estimate = Tags.tags_to_string(w.estimates, ", ")
                 if w:is_any_demanded_skill_negative(net_supply[i]) then
                         new_item.feasible = false
                 else
@@ -205,9 +205,9 @@ function handle_app_text_work(req)
                 local w = plan.work_table[id]
                 work[#work+1] = string.format("%d\t%s\t%s\t%s\t%s\t%s",
                         rank, id, w.name,
-                        Writer.tags_to_string(w.estimates, ","),
+                        Tags.tags_to_string(w.estimates, ","),
                         w:merged_triage(),
-                        Writer.tags_to_string(w.tags, ","))
+                        Tags.tags_to_string(w.tags, ","))
         end
 
         local result_str = table.concat(work, "\n")
@@ -223,8 +223,8 @@ function handle_app_text_staff(req)
         for _, person in ipairs(staff) do
                 rows[#rows+1] = string.format("%s\t%s\t%s\t%s",
                         person.id, person.name,
-                        Writer.tags_to_string(person.skills, ","),
-                        Writer.tags_to_string(person.tags, ","))
+                        Tags.tags_to_string(person.skills, ","),
+                        Tags.tags_to_string(person.tags, ","))
         end
 
         local result_str = table.concat(rows, "\n")
