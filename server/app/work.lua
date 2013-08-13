@@ -27,6 +27,7 @@ we'd do 'w1.tags.track = "money"'. To set the triage group, we'd do
 
 local Object = require('object')
 local func = require('functional')
+local Tags = require('tags')
 
 local Work = {}
 Work._new = Object._new
@@ -43,6 +44,24 @@ function Work.new(options)
 	                 estimates = estimates,
 	                 triage = triage,
                          tags = tags}
+end
+
+function Work.construct_work(str)
+	local id, name, estimate_str, triage_str, tags_str =
+                                                         unpack(str:split("\t"))
+
+        local estimates = Tags.parse_tags(estimate_str)
+        local triage = Tags.parse_tags(triage_str)
+        local tags = Tags.parse_tags(tags_str)
+
+	local result = Work.new{
+		id = id,
+		name = name,
+                triage = triage,
+		estimates = estimates,
+                tags = tags
+	}
+	return result
 end
 
 

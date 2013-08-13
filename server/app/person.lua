@@ -11,6 +11,7 @@ that can be taken on by a team.
 
 ]]--
 
+local Tags = require('tags')
 local Object = require('object')
 
 local Person = {}
@@ -25,6 +26,21 @@ function Person.new(options)
 	return Person:_new{
 		id = id .. "", name = name, skills = skills, tags = tags
 	}
+end
+
+function Person.construct_person(str)
+	local id, name, skills_str, tags_str = unpack(str:split("\t"))
+
+        local skills = Tags.parse_tags(skills_str)
+        local tags = Tags.parse_tags(tags_str)
+
+	local result = Person.new{
+		id = id,
+		name = name,
+		skills = skills,
+                tags = tags
+	}
+	return result
 end
 
 -- Basically takes a person's skill distribution and multiplies it by the

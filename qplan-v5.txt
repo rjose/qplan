@@ -574,7 +574,9 @@ OK, now let's add lua_modules as a subtree. Here are the steps:
         . git commit
 
 Before we finish this piece, let's see if we can clean up the lua modules in
-server/app. I got rid of the writer.lua file by using tags.lua.
+server/app. I got rid of the writer.lua file by using tags.lua. Let's try to get
+rid of the reader.lua file by moving the construct_work function to work.lua and
+the construct_person function to person.lua.
 
 - combine writer and reader into tags.lua
 

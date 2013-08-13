@@ -1,3 +1,5 @@
+require('string_utils')
+
 local RequestParser = {}
 
 function RequestParser.parse_query_params(qstring)

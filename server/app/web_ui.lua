@@ -1,4 +1,3 @@
-local Reader = require('reader')
 local Tags = require('tags')
 local Person = require('person')
 local Plan = require('plan')
@@ -275,7 +274,7 @@ function resource_router(req)
                         lines = req.body:split("\n")
                         for i, l in ipairs(lines) do
                                 work_array[#work_array+1] =
-                                                      Reader.construct_work(l)
+                                                      Work.construct_work(l)
                         end
                         return RequestRouter.construct_response(200,
                                                        "application/text", "")
@@ -284,7 +283,7 @@ function resource_router(req)
                         staff = {}
                         lines = req.body:split("\n")
                         for _, l in ipairs(lines) do
-                                staff[#staff+1] = Reader.construct_person(l)
+                                staff[#staff+1] = Person.construct_person(l)
                         end
                         return RequestRouter.construct_response(200,
                                                        "application/text", "")
