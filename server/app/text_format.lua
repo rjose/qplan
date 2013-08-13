@@ -3,8 +3,8 @@ Plan = require('plan')
 Work = require('work')
 Reader = require('reader')
 Writer = require('writer')
-func = require('modules/functional')
-Select = require('app/select')
+func = require('functional')
+Select = require('select')
 
 require('string_utils')
 

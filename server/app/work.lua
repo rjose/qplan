@@ -25,8 +25,8 @@ we'd do 'w1.tags.track = "money"'. To set the triage group, we'd do
 
 ]]--
 
-local Object = require('modules/object')
-local func = require('modules/functional')
+local Object = require('object')
+local func = require('functional')
 
 local Work = {}
 Work._new = Object._new

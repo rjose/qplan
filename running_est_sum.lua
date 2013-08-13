@@ -1,8 +1,10 @@
 #!/bin/env lua
 
-require('./server/modules/string_utils')
-local Estimates = require('./lua_modules/estimates')
-local Tags = require('./lua_modules/tags')
+package.path = package.path .. ";lua_modules/?.lua"
+
+require('string_utils')
+local Estimates = require('estimates')
+local Tags = require('tags')
 
 running_sum = {}
 for line in io.lines() do

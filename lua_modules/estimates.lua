@@ -1,4 +1,4 @@
-local Tags = require('./lua_modules/tags')
+local Tags = require('tags')
 local result = {}
 
 function translate_estimate(est_string)

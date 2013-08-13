@@ -1,9 +1,11 @@
 #!/usr/bin/env lua
 
-require('./server/modules/string_utils')
-local func = require('./server/modules/functional')
-local estimates = require('./lua_modules/estimates')
-local Tags = require('./lua_modules/tags')
+package.path = package.path .. ";lua_modules/?.lua"
+
+require('string_utils')
+local func = require('functional')
+local estimates = require('estimates')
+local Tags = require('tags')
 
 local weeks_left = arg[1]
 

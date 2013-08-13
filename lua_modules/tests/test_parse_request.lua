@@ -46,7 +46,7 @@ end
 
 function TestParseRequest:test_parse_simple_request()
         local req = RequestParser.parse_request(self.request_string)
-        assertEquals(req.method, "GET")
+        assertEquals(req.method, "get")
         assertEquals(req.request_target, "/")
         assertEquals(req.headers['host'], "localhost:8888")
         assertEquals(req.headers['user-agent'], "Mozilla/5.0 (X11; FreeBSD i386; rv:20.0) Gecko/20100101 Firefox/20.0")
@@ -55,14 +55,14 @@ end
 
 function TestParseRequest:test_request_with_route()
         local req = RequestParser.parse_request(self.request_string_w_route)
-        assertEquals(req.method, "GET")
+        assertEquals(req.method, "get")
         assertEquals(req.request_target, "/app/web/rrt")
 end
 
 
 function TestParseRequest:test_request_with_query()
         local req = RequestParser.parse_request(self.request_string_w_query)
-        assertEquals(req.method, "GET")
+        assertEquals(req.method, "get")
         assertEquals(req.request_target, "/app/web/rbt?triage=1&track=sop")
         assertEquals(req.qparams.triage, {"1"})
         assertEquals(req.qparams.track, {"sop"})
@@ -71,7 +71,7 @@ end
 
 function TestParseRequest:test_request_with_cookies()
         local req = RequestParser.parse_request(self.request_string_w_cookies)
-        assertEquals(req.method, "GET")
+        assertEquals(req.method, "get")
         assertEquals(req.request_target, "/")
         assertEquals(req.headers.cookie, 'name="Borvo"; auth="123"')
         assertEquals(req.cookies['name'], "Borvo")

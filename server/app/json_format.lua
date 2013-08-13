@@ -1,5 +1,5 @@
 local Work = require('work')
-local func = require('modules/functional')
+local func = require('functional')
 local json = require('json')
 
 local JsonFormat = {}

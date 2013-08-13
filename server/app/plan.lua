@@ -26,10 +26,10 @@ feasible cutline.
 ]]--
 
 
-local func = require('modules/functional')
+local func = require('functional')
 local Work = require('work')
 
-local Object = require('modules/object')
+local Object = require('object')
 
 local Plan = {}
 Plan._new = Object._new

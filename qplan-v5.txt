@@ -547,13 +547,29 @@ Remove repl
 The shell should be our repl, so we don't really need this. I'll start by
 joining on the web server thread instead of the repl.
 
-- remove repl.[ch]
-- remove qplan_init
-- try to get rid of JSON and text format
+Create lua_modules repo
+~~~~~~~~~~~~~~~~~~~~~~~
+Anything that's purely app specific should be in the server/lua directory. This
+should be things like json_format, person, plan, qplan, select, websocket,
+web_ui (rename to routes?), and work. Let's create this repo and then move the
+files over. We'll need to update the lua search paths so they can reach them.
+For the time being, I'll symlink the lua_modules directory in. Afterwards, we'll
+add this as a git subtree.
+
+Alright, let's see if we can run our scripts. I'll start with the qplan server
+and then move to the parent directory. I imagine most of this will be paths.
+Alright, the server works. Let's try the lua scripts next. Done. Let's see if
+the existing tests work. Done. Alright, let's check in lua_modules.
+
+Now, let's check in the changes in qplan (it will be broken for this commit
+until we add lua_modules as a subtree).
+
+TODO: When we hit the root directory, we'll need to add our shunit tests.
 
 - make lua modules into own repo
-- move all lua files except web_ui into lua_modules
+- get rid of text format
 - combine writer and reader into tags.lua
+- move all lua files except web_ui into lua_modules
 - try to find a way to use existing shell filters instead of the web UI ones
 
 - move generic shell filters to own repo
@@ -586,3 +602,4 @@ Action Items
 - Set up tests for filters and pipeline
 - Scrub files: delete files and organize lua files into modules
 - add websocket render of chart data
+- Add favicon

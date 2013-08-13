@@ -1,7 +1,9 @@
 #!/usr/bin/env lua
 
-require('./server/modules/string_utils')
-local func = require('./server/modules/functional')
+package.path = package.path .. ";lua_modules/?.lua"
+
+require('string_utils')
+local func = require('functional')
 
 local col = arg[1] + 0
 

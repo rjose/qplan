@@ -9,7 +9,7 @@ format, they go through the same code.
 
 
 local string_utils = require('string_utils')
-local func = require('modules/functional')
+local func = require('functional')
 
 local Writer = {}
 

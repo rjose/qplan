@@ -1,4 +1,4 @@
-local func = require('./server/modules/functional')
+local func = require('functional')
 
 Tags = {}
 
