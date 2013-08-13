@@ -13,7 +13,6 @@
 #include "lualib.h"
 
 #include "qplan_context.h"
-#include "repl.h"
 #include "web.h"
 
 // TODO: Move this to a util file
@@ -30,7 +29,6 @@ int main(int argc, char *argv[])
 {
 	void *thread_result;
 	long status;
-        pthread_t repl_thread_id;
         pthread_t web_thread_id;
         pthread_mutex_t main_mutex = PTHREAD_MUTEX_INITIALIZER;
         lua_State *L_main;
@@ -39,7 +37,9 @@ int main(int argc, char *argv[])
 
         L_main = init_lua_state();
 
-        // TODO: Register C functions
+        /*
+         * Register C functions to be called from lua
+         */
         if (web_register_lua_funcs(L_main) != 0)
                 err_abort(-1, "Unable to register web functions");
 
@@ -51,22 +51,13 @@ int main(int argc, char *argv[])
         qplan_context.main_lua_state = L_main;
         qplan_context.main_mutex = &main_mutex;
 
-	/* Create REPL thread */
-	status = pthread_create(&repl_thread_id, NULL, repl_routine, (void *)&qplan_context);
-	if (status != 0)
-		err_abort(status, "Create repl thread");
-
         /* Create web server thread */
 	status = pthread_create(&web_thread_id, NULL, web_routine, (void *)&qplan_context);
 	if (status != 0)
 		err_abort(status, "Create web thread");
-	status = pthread_detach(web_thread_id);
-	if (status != 0)
-		err_abort(status, "Problem detaching web thread");
 
-
-	/* Join REPL thread */
-	status = pthread_join(repl_thread_id, &thread_result);
+	/* Join web server thread */
+	status = pthread_join(web_thread_id, &thread_result);
 	if (status != 0)
 		err_abort(status, "Join thread");
 

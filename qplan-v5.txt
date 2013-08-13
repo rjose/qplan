@@ -538,6 +538,15 @@ written in shell script and seems pretty light. I think it'll work.
 There should be a top-level "run_tests.sh" script that can run the complete set
 of tests and generate a result summary.
 
+As we refactor, I'll add appropriate test directories whenever I touch something
+new. If it makes sense to test something I'm changing, I'll do it there first.
+Otherwise, I'll just add an empty test for reference.
+
+Remove repl
+~~~~~~~~~~~
+The shell should be our repl, so we don't really need this. I'll start by
+joining on the web server thread instead of the repl.
+
 - remove repl.[ch]
 - remove qplan_init
 - try to get rid of JSON and text format
