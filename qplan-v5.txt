@@ -147,6 +147,7 @@ Implementation
 . rbt is implemented as series of pipes [X][X][X][X][X]<X><X><X><X><X><X><X><X>
 . Push output of rbt to a browser [X][X][X][X][X][X]<X>
 
+
 1 - Write google doc spreadsheet to stdout
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Let's see if we can just get something to work. I'll hardcode my password to
@@ -515,6 +516,42 @@ rbt.lua `weeks_left.py Q4` | broadcast_raw.py
 OK, we're done with this. Let's check in.
 
 
+Refactor
+--------
+
+Writing tests
+~~~~~~~~~~~~~
+The first thing we should do (before any refactoring) is to come up with a test
+strategy. We have examples of lua tests in server/modules. These use lua_unit.
+For our C modules, we're using gnustep-test. For our shell scripts, we don't
+really have any tests. We need to find a tool to use here.
+
+In general, tests for each module should be in a subdirectory of that module.
+Each module should have a shell script called "run_tests.sh" that runs the
+tests, sending the results to stdout. At some point, we should have this script
+emit results in a standard format.
+
+I also need a way to test our shell scripts. Let's look at
+link:https://code.google.com/p/shunit2[shunit2], and see how it feels. It's
+written in shell script and seems pretty light. I think it'll work.
+
+There should be a top-level "run_tests.sh" script that can run the complete set
+of tests and generate a result summary.
+
+- remove repl.[ch]
+- remove qplan_init
+- try to get rid of JSON and text format
+
+- make lua modules into own repo
+- move all lua files except web_ui into lua_modules
+- combine writer and reader into tags.lua
+- try to find a way to use existing shell filters instead of the web UI ones
+
+- move generic shell filters to own repo
+- make some filters more generic
+
+
+
 Notes
 -----
 I'm using a link:https://github.com/craigmj/json4lua[json lua package].
@@ -529,6 +566,8 @@ aren't well separated.
 Need some mechanism for deregistering connections when they close. Perhaps we
 can do this when there's a failed websocket message?
 
+Peter DeVries: "Write drunk; edit sober"
+
 
 Action Items
 ------------
@@ -537,3 +576,4 @@ Action Items
 - Make utils into generic filters
 - Set up tests for filters and pipeline
 - Scrub files: delete files and organize lua files into modules
+- add websocket render of chart data
