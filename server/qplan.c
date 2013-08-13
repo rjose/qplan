@@ -6,6 +6,7 @@
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "lua.h"
 #include "lauxlib.h"
@@ -33,6 +34,8 @@ int main(int argc, char *argv[])
         pthread_t web_thread_id;
         pthread_mutex_t main_mutex = PTHREAD_MUTEX_INITIALIZER;
         lua_State *L_main;
+
+        signal(SIGPIPE, SIG_IGN);
 
         L_main = init_lua_state();
 

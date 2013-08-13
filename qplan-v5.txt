@@ -493,9 +493,15 @@ curl -X POST -H "Content-type: application/json"
 
 Let's broadcast to clients and then check in...Done!
 
+The next step is writing a lua script that reads from stdin and constructs a
+"raw broadcast".
+
 After that, let's put an angular page together for showing the raw
 text. After that, we can write a "broadcast script" to send data to that
-endpoint.
+endpoint. Done! (I also ran into an issue where the SIGPIPE signal brought down
+the app. Fixed this by ignoring it in main since I'm handling the error case on
+write). Another problem was that the lua http.socket library wasn't very good at
+handling non-simple cases. I switched to python instead.
 
 
 Notes

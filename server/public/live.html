@@ -19,7 +19,8 @@
          };
          websocket.onmessage = function(event) {
             console.log("Message!");
-            console.log(event.data);
+            var data = JSON.parse(event.data);
+            console.dir(data);
          };
          websocket.onerror = function(event) {
             console.log("Ugh.");
