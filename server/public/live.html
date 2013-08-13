@@ -14,7 +14,7 @@
 
       <script>
          window.onload = function() {
-            websocket = new WebSocket("ws://localhost:8888");
+            websocket = new WebSocket("ws://" + document.location.hostname + ":8888");
             websocket.onopen = function(event) {
                console.log("Open!");
             };
