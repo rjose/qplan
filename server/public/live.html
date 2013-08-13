@@ -1,32 +1,39 @@
 <!doctype html>
 
-<html ng-app>
+<html>
 <head>
    <meta charset="UTF-8">
    <title>QPlan Live</title>
-   <script src="./js/angular.min.js"></script>
+   <script src="./js/jquery.min.js"></script>
 </head>
 
 <body>
-   <script>
-      window.onload = function() {
-         websocket = new WebSocket("ws://localhost:8888");
-         websocket.onopen = function(event) {
-            console.log("Open!");
-         };
-         websocket.onclose = function(event) {
-            console.log("Close!");
-         };
-         websocket.onmessage = function(event) {
-            console.log("Message!");
-            var data = JSON.parse(event.data);
-            console.dir(data);
-         };
-         websocket.onerror = function(event) {
-            console.log("Ugh.");
+   <div>
+      <pre id='raw_output'></pre>
+   </div>
+
+      <script>
+         window.onload = function() {
+            websocket = new WebSocket("ws://localhost:8888");
+            websocket.onopen = function(event) {
+               console.log("Open!");
+            };
+            websocket.onclose = function(event) {
+               console.log("Close!");
+            };
+            websocket.onmessage = function(event) {
+               console.log("Message!");
+               var data = JSON.parse(event.data);
+               console.dir(data);
+               if (data.command == 'raw') {
+                  $('#raw_output').text(data.data);
+               }
+            };
+            websocket.onerror = function(event) {
+               console.log("Ugh.");
+            }
          }
-      }
-   </script>
+      </script>
 </body>
 
 </html>

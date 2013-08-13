@@ -145,7 +145,7 @@ Implementation
 . Establish websocket connection with server [X][X][X][X][][]
 . Handle websocket PING, CLOSE, and echo [X][X][X][X][X][][]
 . rbt is implemented as series of pipes [X][X][X][X][X]<X><X><X><X><X><X><X><X>
-. Push output of rbt to a browser [X][X][X][][][]
+. Push output of rbt to a browser [X][X][X][X][X][X]<X>
 
 1 - Write google doc spreadsheet to stdout
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -502,6 +502,17 @@ endpoint. Done! (I also ran into an issue where the SIGPIPE signal brought down
 the app. Fixed this by ignoring it in main since I'm handling the error case on
 write). Another problem was that the lua http.socket library wasn't very good at
 handling non-simple cases. I switched to python instead.
+
+The last thing I want to do today is create an angular controller for displaying
+raw data. Once I have this in place, I should be able to cat the rbt data into
+browsers. Done! Here's the command:
+
+----
+cat rbt_input.txt | filter_track.sh "tab|sop|aus" | filter_num.sh 5 1 3 |
+rbt.lua `weeks_left.py Q4` | broadcast_raw.py
+----
+
+OK, we're done with this. Let's check in.
 
 
 Notes
