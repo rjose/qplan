@@ -589,8 +589,8 @@ Alright, let's just do some simple renaming. I want qplan_context => context and
 tcp_io => tcp. First, I'll do qplan_context. Just a file rename. After that,
 I'll rename the variables as well.
 
-- Rename qplan_context to context
-- Rename tcp_io to tcp
+Alright, let's rename tcp_io => tcp
+
 
 - move generic shell filters to own repo
 - make some filters more generic

@@ -6,7 +6,7 @@
 #include <netinet/in.h>
 
 #include "context.h"
-#include "tcp_io.h"
+#include "tcp.h"
 
 /* ----------------------------------------------------------------------------
  * Data structure

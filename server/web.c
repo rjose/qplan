@@ -10,7 +10,6 @@
 #include "lua.h"
 #include "lauxlib.h"
 
-#include "tcp_io.h"
 #include "web.h"
 #include "websockets/ws.h"
 
