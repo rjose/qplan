@@ -604,11 +604,15 @@ Same drill as with lua_modules:
 
 
 Let's finish up by making the filter_track.sh script generic. I've renamed it to
-filter_pf.sh (for packed field).
+filter_pf.sh (for packed field). To push the changes back to the shell_utils
+repo, I did the following:
 
-- make some filters more generic
+        . git checkout shu_branch
+        . git merge --squash -s subtree --no-commit refactor
+        . git commit
+        . git push shu_remote shu_branch:master
 
-
+Now, let's rebase the refactor branch onto master, merge it, and delete it.
 
 Notes
 -----
@@ -631,9 +635,6 @@ Action Items
 ------------
 - Use a common format for stacked output (e.g., make gcat.py match stackstreams)
 - Comment the filter scripts
-- Make utils into generic filters
-- Set up tests for filters and pipeline
-- Scrub files: delete files and organize lua files into modules
 - add websocket render of chart data
 - Add favicon
 - Do a documentation sweep
