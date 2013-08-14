@@ -591,6 +591,17 @@ I'll rename the variables as well.
 
 Alright, let's rename tcp_io => tcp
 
+Create shell_utils
+~~~~~~~~~~~~~~~~~~
+Same drill as with lua_modules:
+
+        . git remote add shu_remote git@github.com:rjose/shell_utils.git
+        . git fetch shu_remote
+        . git checkout -b shu_branch shu_remote/master
+        . git checkout refactor
+        . git read-tree --prefix=shell_utils -u shu_branch
+        . git commit
+
 
 - move generic shell filters to own repo
 - make some filters more generic
