@@ -368,7 +368,7 @@ static int handle_http_request(int connfd, QPlanContext *context,
         /*
          * Call "handle_request" from lua
          */
-        lua_getglobal(L_main, "WebUI"); // This is set when requiring qplan.lua
+        lua_getglobal(L_main, "Router"); // This is set when requiring qplan.lua
         lua_pushstring(L_main, "handle_request");
         lua_gettable(L_main, -2);
         lua_pushlstring(L_main, request_string, req_len);

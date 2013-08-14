@@ -576,14 +576,18 @@ OK, now let's add lua_modules as a subtree. Here are the steps:
 Before we finish this piece, let's see if we can clean up the lua modules in
 server/app. I got rid of the writer.lua file by using tags.lua. Let's try to get
 rid of the reader.lua file by moving the construct_work function to work.lua and
-the construct_person function to person.lua.
+the construct_person function to person.lua. We'll also remove references to
+qplan_init.
 
-- combine writer and reader into tags.lua
+Oh, one last thing here. Let's rename web_ui to routes.
+
 
 - try to find a way to use existing shell filters instead of the web UI ones
 
 - move generic shell filters to own repo
 - make some filters more generic
+- See if we can pull json_format into another file
+- See if we can pull the select functions into other files
 
 
 
