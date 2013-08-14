@@ -33,11 +33,11 @@ static const char content_length_key[] = "content-length: ";
 static void *handle_request_routine(void *);
 static int read_request_string(int, char **, size_t *);
 static int read_request_body(int, const char *, char **, size_t *);
-static int handle_http_request(int, QPlanContext *, const char *, size_t,
+static int handle_http_request(int, Context *, const char *, size_t,
                                                     const char *, size_t);
-static int registration_helper(const char *, int, QPlanContext *);
-static int register_ws_connection(int, QPlanContext *);
-static int deregister_ws_connection(int, QPlanContext *);
+static int registration_helper(const char *, int, Context *);
+static int register_ws_connection(int, Context *);
+static int deregister_ws_connection(int, Context *);
 
 static int push_message(lua_State *);
 
@@ -48,7 +48,7 @@ static int push_message(lua_State *);
  */
 void *web_routine(void *arg)
 {
-        QPlanContext *ctx = (QPlanContext *)arg;
+        Context *ctx = (Context *)arg;
         WebHandlerContext *handler_context;
 
 	int listenfd, connfd;
@@ -122,7 +122,7 @@ static int lua_registration_helper(const char *funcname, int connfd,
 }
 
 static int registration_helper(const char *funcname, int connfd,
-                                                     QPlanContext *context)
+                                                     Context *context)
 {
         int error;
         lua_State *L_main = context->main_lua_state;
@@ -151,18 +151,18 @@ error:
         return result;
 }
 
-static int register_ws_connection(int connfd, QPlanContext *context)
+static int register_ws_connection(int connfd, Context *context)
 {
         return registration_helper(REGISTRATION_FUNCNAME, connfd, context);
 }
 
 
-static int deregister_ws_connection(int connfd, QPlanContext *context)
+static int deregister_ws_connection(int connfd, Context *context)
 {
         return registration_helper(DEREGISTRATION_FUNCNAME, connfd, context);
 }
 
-static int handle_websocket_request(int connfd, QPlanContext *context,
+static int handle_websocket_request(int connfd, Context *context,
                                                 const char* request_string)
 {
         const char *res_str;
@@ -352,7 +352,7 @@ error:
  *
  * NOTE: It's up to the caller of this function to close the connection.
  */
-static int handle_http_request(int connfd, QPlanContext *context,
+static int handle_http_request(int connfd, Context *context,
                                     const char *request_string, size_t req_len,
                                               const char *body, size_t body_len)
 {

@@ -47,12 +47,12 @@ int main(int argc, char *argv[])
         /*
          * Set up context and spin up threads
          */
-        QPlanContext qplan_context;
-        qplan_context.main_lua_state = L_main;
-        qplan_context.main_mutex = &main_mutex;
+        Context context;
+        context.main_lua_state = L_main;
+        context.main_mutex = &main_mutex;
 
         /* Create web server thread */
-	status = pthread_create(&web_thread_id, NULL, web_routine, (void *)&qplan_context);
+	status = pthread_create(&web_thread_id, NULL, web_routine, (void *)&context);
 	if (status != 0)
 		err_abort(status, "Create web thread");
 

@@ -13,7 +13,7 @@
  */
 
 typedef struct WebHandlerContext_ {
-        QPlanContext *context;
+        Context *context;
         int connfd;
 } WebHandlerContext;
 

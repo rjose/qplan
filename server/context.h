@@ -13,18 +13,18 @@
  * This provides access to the main lua state within the app. Any operation on
  * the lua state needs "main_mutex" to be locked first.
  */
-typedef struct QPlanContext_ {
+typedef struct Context_ {
         lua_State *main_lua_state;
         pthread_mutex_t *main_mutex;
-} QPlanContext;
+} Context;
 
 
 /* ----------------------------------------------------------------------------
  * API
  */
 
-void lock_main(QPlanContext *ctx);
+void lock_main(Context *ctx);
 
-void unlock_main(QPlanContext *ctx);
+void unlock_main(Context *ctx);
 
 #endif
