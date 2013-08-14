@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#include "qplan_context.h"
+#include "context.h"
 #include "tcp_io.h"
 
 /* ----------------------------------------------------------------------------

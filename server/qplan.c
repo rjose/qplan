@@ -12,7 +12,7 @@
 #include "lauxlib.h"
 #include "lualib.h"
 
-#include "qplan_context.h"
+#include "context.h"
 #include "web.h"
 
 // TODO: Move this to a util file

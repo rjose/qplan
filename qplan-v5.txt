@@ -583,7 +583,14 @@ Oh, a couple more things here. Let's rename web_ui to router. Let's also see if
 we can squeeze out json_format and select. I got rid of json_format, but
 couldn't get rid of select.lua.
 
+Rename C files
+~~~~~~~~~~~~~~
+Alright, let's just do some simple renaming. I want qplan_context => context and
+tcp_io => tcp. First, I'll do qplan_context. Just a file rename. After that,
+I'll rename the variables as well.
+
 - Rename qplan_context to context
+- Rename tcp_io to tcp
 
 - move generic shell filters to own repo
 - make some filters more generic
