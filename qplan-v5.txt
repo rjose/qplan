@@ -79,6 +79,8 @@ some of the generic filters do:
           sorted by the specified column values.
         - *filter_num.sh*: Selects rows where the specified column values are
           within the specified range.
+        - *filter_fp.sh*: Selects rows from stdin that contain the specified
+          packed field value.
 
 The generic filters should be copied to a standard location and used across
 applications.
@@ -123,8 +125,6 @@ meetings.
 .QPlan filters: Utils
 These filters are nearly generic (perhaps we should make them truly generic?)
 
-        - *filter_track.sh*: Selects rows from stdin that contain the specified
-          track.
         - *tracks.sh*: Takes a list of work items and writes out tracks in
           sorted order. 
 
@@ -146,6 +146,7 @@ Implementation
 . Handle websocket PING, CLOSE, and echo [X][X][X][X][X][][]
 . rbt is implemented as series of pipes [X][X][X][X][X]<X><X><X><X><X><X><X><X>
 . Push output of rbt to a browser [X][X][X][X][X][X]<X>
+. Push charts to browser (NOTE: Refactored before this) [][][][][][]
 
 
 1 - Write google doc spreadsheet to stdout
@@ -516,6 +517,47 @@ rbt.lua `weeks_left.py Q4` | broadcast_raw.py
 OK, we're done with this. Let's check in.
 
 
+8 - Push charts to browser
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOTE: The "Refactor" section below occured just before this step.
+
+We're going to use link:http://d3js.org/[d3] to render our charts. We'll start
+at the client side first and render a pie chart. I think we'll do demand by
+track (for the 1s, say). Once we figure out the data we need and how to render
+it, we'll step backwards. We'll probably need a "broadcast_chart" script and
+then some pipeline to get the data into the right format.
+
+Alright, let's follow along with the d3 book to get something started. OK, I'm
+beginning to see a little. Whenever we do an "svg.selectAll", we're passing in
+the identifier of an link:http://www.w3.org/TR/SVG/[SVG] shape (circle, rect,
+ellipse, polygon, text, etc.). The attributes of these shapes are well-defined.
+
+What I need to understand next are the d3 layouts. This is how a pie chart is
+created. OK, looks like layouts transform data into a format that can be
+rendered by a particular chart. Alright, I was able to draw a pie chart. Let's
+check this in (we'll rebase this checkin out when we're done).
+
+Before we go on, I'm going to read through the SVG spec first to make sure I
+get a sense of what's in it. OK, it looks like "g" is a generic container
+element (there are a number of them). The "d" in "path" is indeed path data. It
+has moveto and lineto commands within it. I think "arc" is something within d3
+(yeah, just checked the source).
+
+OK, I added some javascript to render a piechart. I also added a
+broadcast_piechart.py file with some dummy data. Was able to broadcast raw text
+and a piechart.
+
+Now, let's come up with a format for pie charts. I'll write this up by hand and
+see how it looks...Done! Let's check this in. Now, let's see if we can add
+labels. Done.
+
+Finally, let's add a chart title. Done. Before we go, let's clean up the
+function (margins, comments, etc.), then we can rebase.
+
+Had an idea for a "shortage chart" where the inner part of a donut chart could
+represent the shortages by skill.
+
+
 Refactor
 --------
 
@@ -635,6 +677,10 @@ Action Items
 ------------
 - Use a common format for stacked output (e.g., make gcat.py match stackstreams)
 - Comment the filter scripts
-- add websocket render of chart data
 - Add favicon
 - Do a documentation sweep
+- Work on layout of charts (center, etc.)
+- Look into high CPU utilization (must be the broken pipes)
+- Add chart for unfunded or low triage items that are high in other teams (and
+  vice versa)
+- Add chart showing work items by size, triage (x axis), and value (y axis)

@@ -5,10 +5,12 @@
    <meta charset="UTF-8">
    <title>QPlan Live</title>
    <script src="./js/jquery.min.js"></script>
+   <script src="./js/d3.v3.min.js"></script>
+   <script src="./js/live.js"></script>
 </head>
 
 <body>
-   <div>
+   <div id='output'>
       <pre id='raw_output'></pre>
    </div>
 
@@ -22,17 +24,15 @@
                console.log("Close!");
             };
             websocket.onmessage = function(event) {
-               console.log("Message!");
                var data = JSON.parse(event.data);
-               console.dir(data);
-               if (data.command == 'raw') {
-                  $('#raw_output').text(data.data);
-               }
+               Live.render_data(data);
             };
             websocket.onerror = function(event) {
                console.log("Ugh.");
+               console.dir(event);
             }
          }
+
       </script>
 </body>
 
