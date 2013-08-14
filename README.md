@@ -1,6 +1,11 @@
 qplan
 =====
 
+This is how you get work and staff from a qplan server:
+
+   curl localhost:8888/app/text/work
+   curl localhost:8888/app/text/staff
+
 This is how you might generate something that could be grouped by track:
 
         cat all_work.txt| extract_packed.sh 6 track | group_by.lua 7 > rbt_input.txt

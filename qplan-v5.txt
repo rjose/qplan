@@ -579,15 +579,14 @@ rid of the reader.lua file by moving the construct_work function to work.lua and
 the construct_person function to person.lua. We'll also remove references to
 qplan_init.
 
-Oh, one last thing here. Let's rename web_ui to router.
+Oh, a couple more things here. Let's rename web_ui to router. Let's also see if
+we can squeeze out json_format and select. I got rid of json_format, but
+couldn't get rid of select.lua.
 
-
-- try to find a way to use existing shell filters instead of the web UI ones
+- Rename qplan_context to context
 
 - move generic shell filters to own repo
 - make some filters more generic
-- See if we can pull json_format into another file
-- See if we can pull the select functions into other files
 
 
 

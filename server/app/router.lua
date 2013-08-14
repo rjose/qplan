@@ -6,7 +6,6 @@ local RequestParser = require('request_parser')
 local RequestRouter = require('request_router')
 local Select = require('select')
 local func = require('functional')
-local JsonFormat = require('json_format')
 local json = require('json')
 
 local WebUI = {}
@@ -27,29 +26,15 @@ local APP_RESOURCE_INDEX = 4
 
 local BROADCAST_INDEX = 2
 
--- REQUEST HANDLING -----------------------------------------------------------
+-- UTILITY FUNCTIONS ----------------------------------------------------------
 --
--- -- TEXT ROUTES
---
--- These will become the primary routes going forward
---
-function handle_app_web_staff(req)
-        -- "select" staff
-        local staff = staff
-
-        -- Group by skill
-        local people_by_skill, skill_tags = Select.group_people_by_skill(staff)
-
-        -- Format results
-        local result_str = JsonFormat.format_people_hash(
-                                       people_by_skill, skill_tags, plan, staff)
-
-        -- Return response
-        return RequestRouter.construct_response(200, "application/json", result_str)
+function format_number(num)
+        return string.format("%.1f", num)
 end
 
+-- REQUEST HANDLING -----------------------------------------------------------
+--
 
--- TODO: See if I can push the detail down into well-defined steps
 function handle_app_web_work(req)
         -- Get track and triage from request
         local track = 'All'
@@ -148,48 +133,14 @@ function handle_app_web_work(req)
                                         200, "application/json", json.encode(result))
 end
 
-function handle_app_web_tracks(req)
-        -- Select work items
-	local work = plan:get_work_items()
-
-        -- Group items
-        local track_hash, track_tags = Select.group_by_track(work)
-
-        -- Format results
-        local result_str =
-            JsonFormat.format_work_by_group(track_hash, track_tags, plan, staff)
-
-        -- Return response
-        return RequestRouter.construct_response(
-                                            200, "application/json", result_str)
-end
 
 -- Handles routes like "/app/web/<resource>"
 function handle_app_web_request(req)
-        if req.path_pieces[APP_RESOURCE_INDEX] == 'staff' then
-                return handle_app_web_staff(req)
-        elseif req.path_pieces[APP_RESOURCE_INDEX] == 'work' then
+        if req.path_pieces[APP_RESOURCE_INDEX] == 'work' then
                 return handle_app_web_work(req)
-        elseif req.path_pieces[APP_RESOURCE_INDEX] == 'tracks' then
-                return handle_app_web_tracks(req)
         end
 
         return RequestRouter.construct_response(400, "application/json", "")
-end
-
-function handle_app_web_staff(req)
-        -- "select" staff
-        local staff = staff
-
-        -- Group by skill
-        local people_by_skill, skill_tags = Select.group_people_by_skill(staff)
-
-        -- Format results
-        local result_str = JsonFormat.format_people_hash(
-                                       people_by_skill, skill_tags, plan, staff)
-
-        -- Return response
-        return RequestRouter.construct_response(200, "application/json", result_str)
 end
 
 
