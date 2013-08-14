@@ -187,7 +187,6 @@ static int handle_websocket_request(int connfd, Context *context,
                 frame_type = ws_read_next_message(connfd, my_buffered_read, &message);
                 if (frame_type == WS_FT_TEXT) {
                         // Echo response, then close
-                        printf("Got a message: %s\n", message);
                         frame_len = ws_make_text_frame(message, NULL, &response_frame);
                         my_writen(connfd, response_frame, frame_len);
                         free(response_frame);
