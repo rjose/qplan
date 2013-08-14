@@ -14,7 +14,7 @@ This is how you might generate something that could be grouped by track:
 
 This shows how to use the rbt script:
 
-        cat rbt_input.txt | filter_track.sh sop| filter_num.sh 5 1 1.5 |
+        cat rbt_input.txt | filter_pf.sh track sop| filter_num.sh 5 1 1.5 |
         rbt.lua `weeks_left.py Q4`
 
 

@@ -509,7 +509,7 @@ raw data. Once I have this in place, I should be able to cat the rbt data into
 browsers. Done! Here's the command:
 
 ----
-cat rbt_input.txt | filter_track.sh "tab|sop|aus" | filter_num.sh 5 1 3 |
+cat rbt_input.txt | filter_pf.sh track "tab|sop|aus" | filter_num.sh 5 1 3 |
 rbt.lua `weeks_left.py Q4` | broadcast_raw.py
 ----
 
@@ -603,7 +603,9 @@ Same drill as with lua_modules:
         . git commit
 
 
-- move generic shell filters to own repo
+Let's finish up by making the filter_track.sh script generic. I've renamed it to
+filter_pf.sh (for packed field).
+
 - make some filters more generic
 
 
