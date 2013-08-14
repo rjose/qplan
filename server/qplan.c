@@ -82,14 +82,5 @@ static lua_State *init_lua_state()
                 luaL_error(result, "Problem requiring qplan.lua: %s",
                                 lua_tostring(result, -1));
 
-        // TODO: Init the data from someplace
-#if 0
-        /* Load version specified from commandline */
-        lua_getglobal(result, "qplan_init");
-        lua_pushnumber(result, version);
-        if (lua_pcall(result, 1, 0, 0) != LUA_OK)
-                luaL_error(result, "Problem calling lua function: %s",
-                                lua_tostring(result, -1));
-#endif
         return result;
 }

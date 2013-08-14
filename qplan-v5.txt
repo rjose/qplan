@@ -579,7 +579,7 @@ rid of the reader.lua file by moving the construct_work function to work.lua and
 the construct_person function to person.lua. We'll also remove references to
 qplan_init.
 
-Oh, one last thing here. Let's rename web_ui to routes.
+Oh, one last thing here. Let's rename web_ui to router.
 
 
 - try to find a way to use existing shell filters instead of the web UI ones
