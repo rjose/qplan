@@ -1,11 +1,12 @@
 #ifndef QPLAN_CONTEXT_H
 #define QPLAN_CONTEXT_H
 
-#include "pthread.h"
+#include <pthread.h>
+
 #include "lua.h"
 
 
-/* ----------------------------------------------------------------------------
+/*=============================================================================
  * Data structure
  */
 
@@ -19,12 +20,11 @@ typedef struct Context_ {
 } Context;
 
 
-/* ----------------------------------------------------------------------------
+/*=============================================================================
  * API
  */
 
 void lock_main(Context *ctx);
-
 void unlock_main(Context *ctx);
 
 #endif

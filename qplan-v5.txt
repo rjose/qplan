@@ -562,7 +562,19 @@ represent the shortages by skill.
 9 - Prep for planning meeting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The main goal here is getting the charts and reports and data flows in place to
-support an efficient running of the planning meetings.
+support an efficient running of the planning meetings. Before we get into this
+properly, I'd like to take a refactor sweep through the code.
+
+.Refactor
+First, let's sort our included headers (I'm using :1,10!sort to sort lines 1
+through 10, for instance). Next, let's add some header lines (Use 75i=ESC to add
+row of double dashes). Alright, qplan.c is cleaned up. Let's hit tcp next. I
+think we should reformat each file one-by-one. We'll rebase the lot of them when
+we're done. Alright, let's hit context.c next. Now, let's sweep through web.c.
+Done. Now, let's make sure we have oneline descriptions for each function
+heading. Done!
+
+I also want to go through the websockets library.
 
 
 Refactor
@@ -706,3 +718,5 @@ Action Items
 - Add chart for unfunded or low triage items that are high in other teams (and
   vice versa)
 - Add chart showing work items by size, triage (x axis), and value (y axis)
+- Make qplan into a generic server that can be customized via lua (need to
+  specify port as well. Also need to point to website root)
