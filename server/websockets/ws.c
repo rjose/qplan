@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <syslog.h>
 
 #include <sys/time.h>
 #include <sys/types.h>
@@ -42,10 +43,17 @@
 
 #define MAXLINE 1000
 
+#define mem_alloc_failure(file, line) \
+{\
+        syslog(LOG_ALERT, "%s:%d Memory allocation failure", file, line);\
+        closelog();\
+        sleep(1);\
+        exit(-1);\
+}
+
 /* ============================================================================ 
  * Static declarations
  */
-static void err_abort(int, const char *);
 static int get_ws_key(char *, size_t, const char *);
 static uint8_t toggle_mask(uint8_t, size_t, const uint8_t [4]);
 static int ws_extend_frame_buf(WebsocketFrame *frame, size_t more_len);
@@ -55,14 +63,6 @@ static int ws_append_bytes(WebsocketFrame *frame, uint8_t *src, size_t n);
 static char *append_message(char *, char *);
 
 static char ws_magic_string[] = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-
-
-// TODO: Move this to a util file
-static void err_abort(int status, const char *message)
-{
-        fprintf(stderr, message);
-        exit(status);
-}
 
 /*
  * We're basically checking to see if the required fields are present.
@@ -124,14 +124,14 @@ const char *ws_complete_handshake(const char *req_str)
                 "Sec-WebSocket-Accept: %s\r\n"
                 "\r\n";
         char *result;
-        
+
+
         /*
          * Allocate space for result
          */
         result = calloc(MAX_HANDSHAKE_RESPONSE_LEN, sizeof(char));
-        if (result == NULL) {
-                err_abort(-1, "Can't allocate memory in ws_complete_handshake");
-        }
+        if (result == NULL)
+                mem_alloc_failure(__FILE__, __LINE__);
 
 	/* Compute websocket accept value */
         if (get_ws_key(websocket_key, MAX_WEBSOCKET_KEY_LEN, req_str) != 0)
@@ -218,7 +218,7 @@ size_t ws_make_text_frame(const char *message, const uint8_t mask[4], uint8_t **
         }
         frame_len = 2 + num_len_bytes + mask_len + message_len;
         if ((result = (uint8_t *)malloc(frame_len)) == NULL)
-                err_abort(-1, "Can't allocate memory for ws_make_text_frame");
+                mem_alloc_failure(__FILE__, __LINE__);
 
         /*
          * Write data into the frame. First, we'll write the first 2 bytes
@@ -266,7 +266,7 @@ size_t ws_make_close_frame(uint8_t **frame_p)
         byte1 = 0;
 
         if ((result = (uint8_t *)malloc(2)) == NULL)
-                err_abort(-1, "Can't allocate memory for ws_make_close_frame");
+                mem_alloc_failure(__FILE__, __LINE__);
 
         result[0] = byte0;
         result[1] = byte1;
@@ -290,7 +290,7 @@ size_t ws_make_ping_frame(uint8_t **frame_p)
         byte1 = 0;
 
         if ((result = (uint8_t *)malloc(2)) == NULL)
-                err_abort(-1, "Can't allocate memory for ws_make_close_frame");
+                mem_alloc_failure(__FILE__, __LINE__);
 
         result[0] = byte0;
         result[1] = byte1;
@@ -313,7 +313,7 @@ size_t ws_make_pong_frame(uint8_t **frame_p)
         byte1 = 0;
 
         if ((result = (uint8_t *)malloc(2)) == NULL)
-                err_abort(-1, "Can't allocate memory for ws_make_close_frame");
+                mem_alloc_failure(__FILE__, __LINE__);
 
         result[0] = byte0;
         result[1] = byte1;
@@ -412,7 +412,7 @@ enum WebsocketFrameType ws_read_next_message(int connfd, ws_read_bytes_fp read_b
                         result = WS_FT_CLOSE;
                 else {
                         result = WS_FT_ERROR;
-                        fprintf(stderr, "Unknown websocket frame type\n");
+                        syslog(LOG_ERR, "Unknown websocket frame type");
                 }
 
                 /*
@@ -444,7 +444,7 @@ static char *append_message(char *dst, char *src)
         src_len = strlen(src);
         dst_len = strlen(dst);
         if ((dst=(char *)realloc(dst, dst_len + src_len + 1)) == NULL)
-                err_abort(-1, "Can't realloc in append_message");
+                mem_alloc_failure(__FILE__, __LINE__);
 
         strncpy(dst+dst_len, src, src_len);
         free(src);
@@ -559,7 +559,7 @@ static int ws_extend_frame_buf(WebsocketFrame *frame, size_t more_len)
 {
         if ((frame->buf =
              (uint8_t *)realloc(frame->buf, frame->buf_len + more_len)) == NULL)
-                err_abort(-1, "Can't realloc in ws_extend_frame_buf");
+                mem_alloc_failure(__FILE__, __LINE__);
 
         frame->buf_len += more_len;
         return 0;
@@ -646,8 +646,7 @@ const uint8_t *ws_extract_message(const uint8_t *frame)
          * Allocate memory and fill in the message.
          */
         if ((result = (uint8_t *)malloc(message_len + 1)) == NULL)
-                err_abort(-1,
-                     "Couldn't allocate result for ws_extract_message");
+                mem_alloc_failure(__FILE__, __LINE__);
 
         for (i = 0; i < message_len; i++)
                 result[i] = toggle_mask(frame[message_start+i], i, mask);

@@ -4,19 +4,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <err.h>
+#include <syslog.h>
 
 #include <pthread.h>
 
 #include "lua.h"
 #include "lauxlib.h"
 
+#include "errors.h"
 #include "web.h"
 #include "websockets/ws.h"
 
-extern void err_abort(int status, const char *message);
 
-
-#define SA struct sockaddr
 #define LISTENQ 1024
 #define MAXLINE 1024
 
@@ -72,7 +71,7 @@ void *web_routine(void *arg)
 	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	servaddr.sin_port = htons(8888);
 
-	if (bind(listenfd, (SA*) &servaddr, sizeof(servaddr)) < 0)
+	if (bind(listenfd, (struct sockaddr*) &servaddr, sizeof(servaddr)) < 0)
 		err(1, "Problem binding to descriptor:%d", listenfd);
 
 	if (listen(listenfd, LISTENQ) < 0)
@@ -83,24 +82,25 @@ void *web_routine(void *arg)
          */
         clilen = sizeof(cliaddr);
         while(1) {
-		connfd = accept(listenfd, (SA*) &cliaddr, &clilen);
+		connfd = accept(listenfd, (struct sockaddr*) &cliaddr, &clilen);
 
                 /*
                  * Set up handler context
                  */
                 handler_context = (WebHandlerContext *)malloc(sizeof(WebHandlerContext));
                 if (handler_context == NULL)
-                        err_abort(-1, "Unable to allocate memory");
+                        mem_alloc_failure(__FILE__, __LINE__);
+
                 handler_context->context = ctx;
                 handler_context->connfd = connfd;
 
                 status = pthread_create(&tid, NULL, handle_request_routine,
                                                        (void *)handler_context);
                 if (status != 0)
-                        err_abort(status, "Create web thread");
+                        pthread_failure(__FILE__, __LINE__);
 
                 if (pthread_detach(tid) != 0)
-                        err_abort(-1, "Couldn't detach thread");
+                        pthread_failure(__FILE__, __LINE__);
         }
 
         return NULL;
@@ -132,7 +132,7 @@ static int registration_helper(const char *funcname, int connfd,
         error = lua_registration_helper(funcname, connfd, L_main);
 
         if (error) {
-                fprintf(stderr, "%s\n", lua_tostring(L_main, -1));
+                syslog(LOG_ERR, lua_tostring(L_main, -1));
                 lua_pop(L_main, 1);
                 result = -1;
                 goto error;
@@ -274,7 +274,8 @@ static int read_request_string(int connfd,
         int i;
 
         if ((request_string = malloc(sizeof(char) * MAXLINE)) == NULL)
-                err_abort(-1, "Couldn't allocate memory");
+                mem_alloc_failure(__FILE__, __LINE__);
+
         str_capacity = MAXLINE;
 
         /*
@@ -290,7 +291,7 @@ static int read_request_string(int connfd,
                 if ((req_len + cur_len) >= str_capacity) {
                         if ((request_string = realloc(request_string,
                             sizeof(char) * (str_capacity + MAXLINE))) == NULL)
-                                err_abort(-1, "Couldn't realloc memory");
+                                mem_alloc_failure(__FILE__, __LINE__);
 
                         str_capacity += MAXLINE;
                 }
@@ -329,7 +330,7 @@ static int read_request_body(int connfd, const char *request_string,
                 body_len = strtol(s + CONTENT_LENGTH_KEY_LEN, NULL, 0);
 
                 if ((body = malloc(body_len + 1)) == NULL)
-                        err_abort(-1, "Couldn't allocate memory");
+                        mem_alloc_failure(__FILE__, __LINE__);
 
                 if (my_buffered_read(connfd, body, body_len) < 0)
                         goto error;
@@ -378,7 +379,7 @@ static int handle_http_request(int connfd, Context *context,
         lua_pushlstring(L_main, body, body_len);
         error = lua_pcall(L_main, 2, 1, 0);
         if (error) {
-                fprintf(stderr, "%s\n", lua_tostring(L_main, -1));
+                syslog(LOG_ERR, lua_tostring(L_main, -1));
                 lua_pop(L_main, 1);
                 result = -1;
                 goto error;
@@ -389,7 +390,8 @@ static int handle_http_request(int connfd, Context *context,
          */
         tmp = lua_tolstring(L_main, -1, &res_len);
         if ((res_str = (char *)malloc(sizeof(char)*res_len)) == NULL)
-                err_abort(-1, "Couldn't allocate memory");
+                mem_alloc_failure(__FILE__, __LINE__);
+
         strncpy(res_str, tmp, res_len);
         lua_pop(L_main, 1);
 
@@ -422,7 +424,7 @@ static int push_message(lua_State *L)
         frame_len = ws_make_text_frame(message, NULL, &response_frame);
         if (my_writen(connfd, response_frame, frame_len) != 0) {
                 if (lua_registration_helper(DEREGISTRATION_FUNCNAME,connfd,L)) {
-                        fprintf(stderr, "%s\n", lua_tostring(L, -1));
+                        syslog(LOG_ERR, lua_tostring(L, -1));
                         lua_pop(L, 1);
                 }
         }

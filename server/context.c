@@ -1,17 +1,16 @@
 #include "context.h"
-
-extern void err_abort(int status, const char *message);
+#include "errors.h"
 
 
 void lock_main(Context *ctx)
 {
         if (pthread_mutex_lock(ctx->main_mutex) != 0)
-                err_abort(-1, "Problem locking main mutex");
+                pthread_failure(__FILE__, __LINE__);
 }
 
 void unlock_main(Context *ctx)
 {
         if (pthread_mutex_unlock(ctx->main_mutex) != 0)
-                err_abort(-1, "Problem unlocking main mutex");
+                pthread_failure(__FILE__, __LINE__);
 }
 
