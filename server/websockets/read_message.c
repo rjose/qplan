@@ -1,329 +1,59 @@
 #define _GNU_SOURCE
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
-#include <unistd.h>
 #include <syslog.h>
+#include <unistd.h>
 
 #include <sys/time.h>
 #include <sys/types.h>
 
-#include <openssl/sha.h>
-
+#include "util.h"
 #include "ws.h"
-#include "base64.h"
+#include "constants.h"
+#include "errors.h"
 
-#define MAX_HANDSHAKE_RESPONSE_LEN 300
-#define MAX_WEBSOCKET_KEY_LEN 40
-#define SEC_WEBSOCKET_KEY "Sec-WebSocket-Key"
-#define SEC_WEBSOCKET_KEY_LEN 17
-#define BUF_LENGTH 200
+/*==============================================================================
+ * Defines
+ */
 
-#define SHORT_MESSAGE_LEN 125
-#define MED_MESSAGE_LEN 0xFFFF 
-#define MED_MESSAGE_KEY 126
-#define LONG_MESSAGE_KEY 127
-#define NUM_MED_LEN_BYTES 2
-#define NUM_LONG_LEN_BYTES 8
-#define MASK_LEN 4
-
-/* Byte 0 of websocket frame */
-#define WS_FRAME_FIN 0x80
-#define WS_FRAME_OP_CONT 0x00
-#define WS_FRAME_OP_TEXT 0x01
-#define WS_FRAME_OP_BIN 0x02
-#define WS_FRAME_OP_CLOSE 0x08
-#define WS_FRAME_OP_PING 0x09
-#define WS_FRAME_OP_PONG 0x0A
-
-/* Byte 1 of websocket frame */
-#define WS_FRAME_MASK 0x80
 
 #define MAXLINE 1000
 
-#define mem_alloc_failure(file, line) \
-{\
-        syslog(LOG_ALERT, "%s:%d Memory allocation failure", file, line);\
-        closelog();\
-        sleep(1);\
-        exit(-1);\
-}
 
 /* ============================================================================ 
  * Static declarations
  */
-static int get_ws_key(char *, size_t, const char *);
-static uint8_t toggle_mask(uint8_t, size_t, const uint8_t [4]);
-static int ws_extend_frame_buf(WebsocketFrame *frame, size_t more_len);
-static int ws_init_frame(WebsocketFrame *frame);
-static int ws_update_read_state(WebsocketFrame *frame);
-static int ws_append_bytes(WebsocketFrame *frame, uint8_t *src, size_t n);
+enum WebsocketReadState {
+        WSF_START,
+        WSF_READ_MED_LEN,
+        WSF_READ_LONG_LEN,
+        WSF_READ
+};
+
+typedef struct WebsocketFrame_ {
+        uint8_t *buf;
+        size_t buf_len;
+        size_t num_read;
+        size_t num_to_read;
+        enum WebsocketReadState read_state;
+} WebsocketFrame;
+
+
+static int ws_append_bytes(WebsocketFrame *, uint8_t *, size_t);
 static char *append_message(char *, char *);
+static int ws_extend_frame_buf(WebsocketFrame *, size_t);
+static const uint8_t *ws_extract_message(const uint8_t *);
+static int ws_init_frame(WebsocketFrame *);
+static int ws_is_close_frame(const uint8_t*);
+static int ws_is_final(const uint8_t*);
+static int ws_is_ping_frame(const uint8_t*);
+static int ws_is_pong_frame(const uint8_t*);
+static int ws_is_text_frame(const uint8_t*);
+static int ws_update_read_state(WebsocketFrame *);
 
-static char ws_magic_string[] = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-
-/*
- * We're basically checking to see if the required fields are present.
- */
-int ws_is_handshake(const char* req_str)
-{
-        /* Look for "Upgrade: websocket" */ 
-        if (strcasestr(req_str, "Upgrade: websocket") == NULL)
-                return 0;
-
-        /* Look for "Connection: Upgrade" */
-        if (strcasestr(req_str, "Connection: upgrade") == NULL)
-                return 0;
-
-        /* Look for "Sec-WebSocket-Key:" */
-        if (strcasestr(req_str, "Sec-WebSocket-Key:") == NULL)
-                return 0;
-
-        return 1;
-}
-
-static int get_ws_key(char *dst, size_t n, const char *req_str)
-{
-        int i;
-        const char *start_key;
-        const char *val;
-
-        start_key = strcasestr(req_str, SEC_WEBSOCKET_KEY);
-        if (start_key == NULL)
-                return -1;
-
-        val = start_key + SEC_WEBSOCKET_KEY_LEN + 2; /* 2 for the colon and space */
-        for (i = 0; i < n-1 && *val != '\r'; i++)
-                *dst++ = *val++;
-        *dst = '\0';
-
-        return 0;
-}
-
-/*
- * This generates a response string appropriate for completing the websocket handshake.
- *
- * NOTE: We're assuming req_str is a valid handshake string.
- *
- * NOTE: This function allocates memory for the response, so the caller must
- * free it when done.
- *
- */
-const char *ws_complete_handshake(const char *req_str)
-{
-        char buf[BUF_LENGTH];
-        char websocket_key[MAX_WEBSOCKET_KEY_LEN];
-	uint8_t sha_digest[SHA_DIGEST_LENGTH];
-        char *websocket_accept = NULL;
-        static char response_template[] = 
-                "HTTP/1.1 101 Switching Protocols\r\n"
-                "Upgrade: websocket\r\n"
-                "Connection: Upgrade\r\n"
-                "Sec-WebSocket-Accept: %s\r\n"
-                "\r\n";
-        char *result;
-
-
-        /*
-         * Allocate space for result
-         */
-        result = calloc(MAX_HANDSHAKE_RESPONSE_LEN, sizeof(char));
-        if (result == NULL)
-                mem_alloc_failure(__FILE__, __LINE__);
-
-	/* Compute websocket accept value */
-        if (get_ws_key(websocket_key, MAX_WEBSOCKET_KEY_LEN, req_str) != 0)
-                goto error;
-
-	strncpy(buf, websocket_key, BUF_LENGTH/2);
-	strncat(buf, ws_magic_string, BUF_LENGTH/2);
-        SHA_CTX ctx;
-        SHA1_Init(&ctx);
-        SHA1_Update(&ctx, buf, strlen(buf));
-        SHA1_Final(sha_digest, &ctx);
-
-        if (base64_encode(&websocket_accept, sha_digest,
-                                                  SHA_DIGEST_LENGTH) != 0)
-                goto error;
-
-        /*
-         * Construct response and return
-         */
-        snprintf(result, MAX_HANDSHAKE_RESPONSE_LEN, response_template, websocket_accept);
-        free(websocket_accept);
-        return result;
-
-error:
-        if (result != NULL)
-                free(result);
-
-        if (websocket_accept != NULL)
-                free(websocket_accept);
-        return NULL;
-}
-
-static uint8_t toggle_mask(uint8_t c, size_t index, const uint8_t mask[4])
-{
-        uint8_t result = c;
-        if (mask)
-                result = c ^ mask[index % 4];
-
-        return result;
-}
-
-
-/*
- * NOTE: This function will always set the FIN bit to 1. If you want to send
- * fragments, set this to 0 once you get the frame back.
- */
-size_t ws_make_text_frame(const char *message, const uint8_t mask[4], uint8_t **frame_p)
-{
-        uint64_t i;
-        uint64_t message_len;
-        size_t mask_len;
-        size_t num_len_bytes; /* Number of extended payload len bytes */
-        uint8_t byte0, byte1;     /* First two bytes of the frame */
-        uint64_t tmp;
-        size_t frame_len;
-        uint8_t *result = NULL;
-
-        /* We know this is a text frame */
-        byte0 = WS_FRAME_OP_TEXT;
-        byte0 |= WS_FRAME_FIN;
-
-        /* If a mask is specified, set the mask bit */
-        byte1 = mask ? WS_FRAME_MASK : 0;
-
-        /*
-         * Figure out the length of the frame and then allocate memory. This
-         * involves figuring out if we need a mask, if we need extra length
-         * bytes, and how big the message is.
-         */
-        mask_len = mask ? 4 : 0;
-        message_len = strlen(message);
-        if (message_len <= SHORT_MESSAGE_LEN) {
-                num_len_bytes = 0;
-                byte1 |= message_len;
-        }
-        else if (message_len > SHORT_MESSAGE_LEN &&
-                                               message_len <= MED_MESSAGE_LEN) {
-                num_len_bytes = 2;
-                byte1 |= MED_MESSAGE_KEY;
-        }
-        else {
-                num_len_bytes = 8;
-                byte1 |= LONG_MESSAGE_KEY;
-        }
-        frame_len = 2 + num_len_bytes + mask_len + message_len;
-        if ((result = (uint8_t *)malloc(frame_len)) == NULL)
-                mem_alloc_failure(__FILE__, __LINE__);
-
-        /*
-         * Write data into the frame. First, we'll write the first 2 bytes
-         * that we've constructed. After this comes the extended payload
-         * length (if needed). After that is the mask (if needed). Finally, we
-         * write our message.
-         */
-        result[0] = byte0;
-        result[1] = byte1;
-
-        /* Write extended length */
-        tmp = message_len;
-        for (i = num_len_bytes; i > 0; i--) {
-                result[2 + i - 1] = tmp & 0xFF;
-                tmp >>= 8;
-        }
-        
-        /* Write mask */
-        if (mask)
-                for (i = 0; i < mask_len; i++)
-                        result[2 + num_len_bytes + i] = mask[i];
-
-        /* Write message */
-        for (i = 0; i < message_len; i++) {
-                result[2 + num_len_bytes + mask_len + i] =
-                                       toggle_mask(message[i], i, mask);
-        }
-
-        /*
-         * Return results
-         */
-        *frame_p = result;
-
-        return frame_len;
-}
-
-size_t ws_make_close_frame(uint8_t **frame_p)
-{
-        uint8_t byte0, byte1;     /* First two bytes of the frame */
-        uint8_t *result = NULL;
-
-        byte0 = WS_FRAME_OP_CLOSE;
-        byte0 |= WS_FRAME_FIN;
-
-        byte1 = 0;
-
-        if ((result = (uint8_t *)malloc(2)) == NULL)
-                mem_alloc_failure(__FILE__, __LINE__);
-
-        result[0] = byte0;
-        result[1] = byte1;
-
-        /*
-         * Return result
-         */
-        *frame_p = result;
-
-        return 2;
-}
-
-size_t ws_make_ping_frame(uint8_t **frame_p)
-{
-        uint8_t byte0, byte1;     /* First two bytes of the frame */
-        uint8_t *result = NULL;
-
-        byte0 = WS_FRAME_OP_PING;
-        byte0 |= WS_FRAME_FIN;
-
-        byte1 = 0;
-
-        if ((result = (uint8_t *)malloc(2)) == NULL)
-                mem_alloc_failure(__FILE__, __LINE__);
-
-        result[0] = byte0;
-        result[1] = byte1;
-
-        /*
-         * Return result
-         */
-        *frame_p = result;
-        return 2;
-}
-
-size_t ws_make_pong_frame(uint8_t **frame_p)
-{
-        uint8_t byte0, byte1;     /* First two bytes of the frame */
-        uint8_t *result = NULL;
-
-        byte0 = WS_FRAME_OP_PONG;
-        byte0 |= WS_FRAME_FIN;
-
-        byte1 = 0;
-
-        if ((result = (uint8_t *)malloc(2)) == NULL)
-                mem_alloc_failure(__FILE__, __LINE__);
-
-        result[0] = byte0;
-        result[1] = byte1;
-
-        /*
-         * Return result
-         */
-        *frame_p = result;
-        return 2;
-}
 
 
 /* ============================================================================ 
@@ -588,7 +318,8 @@ static int ws_append_bytes(WebsocketFrame *frame, uint8_t *src, size_t n)
 }
 
 
-const uint8_t *ws_extract_message(const uint8_t *frame)
+static const uint8_t *
+ws_extract_message(const uint8_t *frame)
 {
         uint64_t i;
         uint8_t byte0;
@@ -659,30 +390,32 @@ const uint8_t *ws_extract_message(const uint8_t *frame)
 }
 
 
-/*
- * Just checks the first byte for the CLOSE bit.
- */
-int ws_is_close_frame(const uint8_t* frame_str)
+static int
+ws_is_close_frame(const uint8_t* frame_str)
 {
         return (frame_str[0] & 0x0f) == WS_FRAME_OP_CLOSE;
 }
 
-int ws_is_ping_frame(const uint8_t* frame_str)
+static int
+ws_is_ping_frame(const uint8_t* frame_str)
 {
         return (frame_str[0] & 0x0f) == WS_FRAME_OP_PING;
 }
 
-int ws_is_pong_frame(const uint8_t* frame_str)
+static int
+ws_is_pong_frame(const uint8_t* frame_str)
 {
         return (frame_str[0] & 0x0f) == WS_FRAME_OP_PONG;
 }
 
-int ws_is_text_frame(const uint8_t* frame_str)
+static int
+ws_is_text_frame(const uint8_t* frame_str)
 {
         return (frame_str[0] & 0x0f) == WS_FRAME_OP_TEXT;
 }
 
-int ws_is_final(const uint8_t* frame_str)
+static int
+ws_is_final(const uint8_t* frame_str)
 {
         return (frame_str[0] & 0xf0) == WS_FRAME_FIN;
 }
