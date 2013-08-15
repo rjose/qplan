@@ -656,6 +656,21 @@ repo, I did the following:
 
 Now, let's rebase the refactor branch onto master, merge it, and delete it.
 
+
+
+Debug CPU Utilization
+---------------------
+Every time I create a new websocket connection, I'm seeing the CPU utilization
+increase. Looking in gdb, I see that most of the threads are in "read". Let's
+set a breakpoint there and see if we keep hitting it. Looks like it's happening
+in "my_read". May need to do something like a select on this.
+
+Hmmm. Seems like whenever the pipe breaks, then we always get a "ready to read".
+I wonder if we can check the error state from select? Checking this, but that
+wasn't the problem. It looks like when the pipe is closed, the socket becomes
+readable, but there's nothing there. Needed to check for this case. Things look
+much better now.
+
 Notes
 -----
 I'm using a link:https://github.com/craigmj/json4lua[json lua package].

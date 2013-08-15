@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <unistd.h>
+
+#include <sys/time.h>
+#include <sys/types.h>
 
 #include <openssl/sha.h>
 
@@ -348,6 +352,14 @@ enum WebsocketFrameType ws_read_next_message(int connfd, ws_read_bytes_fp read_b
         int num_to_read;
         int num_read;
         char *tmp = NULL;
+        fd_set readfds;
+        fd_set exceptfds;
+
+
+        FD_ZERO(&readfds);
+        FD_ZERO(&exceptfds);
+        FD_SET(connfd, &readfds);
+        FD_SET(connfd, &exceptfds);
 
         /*
          * This reads frames in and combines any fragments together
@@ -366,7 +378,15 @@ enum WebsocketFrameType ws_read_next_message(int connfd, ws_read_bytes_fp read_b
                         if (num_to_read == 0)
                                 continue;
 
-                        if ((num_read = read_bytes(connfd, buf, num_to_read)) < 0) {
+                        // Wait for something to read
+                        select(connfd+1, &readfds, NULL, &exceptfds, NULL);
+                        if (!FD_ISSET(connfd, &readfds) ||
+                             FD_ISSET(connfd, &exceptfds)) {
+                                result = WS_FT_ERROR;
+                                goto error;
+                        }
+
+                        if ((num_read = read_bytes(connfd, buf, num_to_read)) <= 0) {
                                 result = WS_FT_ERROR;
                                 goto error;
                         }

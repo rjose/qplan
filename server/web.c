@@ -200,6 +200,11 @@ static int handle_websocket_request(int connfd, Context *context,
                         deregister_ws_connection(connfd, context);
                         break;
                 }
+                else {
+                        deregister_ws_connection(connfd, context);
+                        result = -1;
+                        break;
+                }
         }
 
         return result;
