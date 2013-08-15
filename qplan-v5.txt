@@ -146,7 +146,8 @@ Implementation
 . Handle websocket PING, CLOSE, and echo [X][X][X][X][X][][]
 . rbt is implemented as series of pipes [X][X][X][X][X]<X><X><X><X><X><X><X><X>
 . Push output of rbt to a browser [X][X][X][X][X][X]<X>
-. Push charts to browser (NOTE: Refactored before this) [][][][][][]
+. Push charts to browser (NOTE: Refactored before this) [X][X][X][X][X][]
+. Prep for planning meeting [][][][][][][][][][]
 
 
 1 - Write google doc spreadsheet to stdout
@@ -556,6 +557,12 @@ function (margins, comments, etc.), then we can rebase.
 
 Had an idea for a "shortage chart" where the inner part of a donut chart could
 represent the shortages by skill.
+
+
+9 - Prep for planning meeting
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The main goal here is getting the charts and reports and data flows in place to
+support an efficient running of the planning meetings.
 
 
 Refactor
