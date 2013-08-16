@@ -1,7 +1,10 @@
 local Tags = require('tags')
-local result = {}
+local Estimates = {}
 
-function translate_estimate(est_string)
+--------------------------------------------------------------------------------
+-- Translates an estimate like "5M" into 10.
+--
+function Estimates.translate_estimate(est_string)
         local scalar = 1
         local unit
         local units = {["S"] = 1, ["M"] = 2, ["L"] = 3, ["Q"] = 13}
@@ -24,18 +27,25 @@ function translate_estimate(est_string)
         return scalar * units[unit]
 end
 
-function convert_estimates(line)
+
+--------------------------------------------------------------------------------
+-- Converts an estimate string into a table of values.
+--
+-- Takes a string like "Apps:S,Native:M,Web:2Q and uses translate_estimate to
+-- convert each part into a value and returns a table like:
+--      {"Apps": 1, "Native": 2, "Web": 26}
+--
+function Estimates.convert_estimates(line)
         if line == "" then return "" end
 
         local converted = {}
         local estimates = Tags.parse_tags(line)
         for skill, est_str in pairs(estimates) do
-                converted[skill] = translate_estimate(est_str)
+                converted[skill] = Estimates.translate_estimate(est_str)
         end
         return converted
 
 end
 
-result.convert_estimates = convert_estimates
 
-return result
+return Estimates

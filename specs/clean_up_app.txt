@@ -1,0 +1,40 @@
+Clean up App
+============
+Rino Jose <@rjose>
+Aug 17, 2013
+
+Overview
+--------
+The lua files in "app" are the oldest in qplan. I'd like to take a sweep through
+these and separate what we're using from what we're not. I want to tighten all
+of this up in general.
+
+Implementation
+--------------
+. Move uneeded code from plan.lua [X][X][X]
+. Tighten up work.lua [][][][]
+. Tighten up router.lua [][][][]
+
+
+1 - Move uneeded code from plan.lua
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Let's start by moving plan.lua over to a new file (like plan_algo), then we can
+pull the functions we need back into plan.lua. OK, let's tighten up the code
+that's currently in plan and see if we can tighten up references to it as well.
+
+Let's also have Plan just store work and staff. We'll remove cutline, default
+supply, etc.
+
+We need to move work_array into m_plan as well. Done.
+
+Let's rename select to be filters and then only include the functions we need.
+
+
+TODO: I want plan to store work and staff in essentially array form. We don't
+need to access any particular element at this time.
+
+2 - Tighten up router.lua
+~~~~~~~~~~~~~~~~~~~~~~~~~
+It may make sense to split the file up into different route files. Let's do this
+by renaming the router.lua file and then creating a blank one to copy things
+into. Done. I split these into different files for different types of routes.

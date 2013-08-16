@@ -1,5 +1,4 @@
 --[[
-
 Work is something that needs to be done as part of a project or plan. Work is
 not a specific task for one person; it's a higher level estimate of a feature
 that may require multiple skills. Likewise, there is no assignment to any
@@ -22,16 +21,38 @@ Work often needs to be categorized into different groups. This is handled
 through our "tag" mechanism. For instance, to set the track for a work item w1,
 we'd do 'w1.tags.track = "money"'. To set the triage group, we'd do
 'w1.tags.priority = 1'.
-
 ]]--
 
 local Object = require('object')
 local func = require('functional')
 local Tags = require('tags')
+local Estimates = require('estimates')
 
+--==============================================================================
+-- Local declarations
+--
+local add_skill_demand
+local subtract_skill_demand
+local running_demand
+local is_any_skill_negative
+
+
+--------------------------------------------------------------------------------
+-- Objectifies person
+--
 local Work = {}
 Work._new = Object._new
 
+
+
+--==============================================================================
+-- Public API
+--
+
+
+--------------------------------------------------------------------------------
+-- Constructs a work object from a table.
+--
 function Work.new(options)
 	id = options.id or ""
         triage = options.triage or {}
@@ -46,7 +67,12 @@ function Work.new(options)
                          tags = tags}
 end
 
-function Work.construct_work(str)
+
+
+--------------------------------------------------------------------------------
+-- Constructs a work object from a string and a ranking.
+--
+function Work.construct_work(str, rank)
 	local id, name, estimate_str, triage_str, tags_str =
                                                          unpack(str:split("\t"))
 
@@ -61,67 +87,35 @@ function Work.construct_work(str)
 		estimates = estimates,
                 tags = tags
 	}
-	return result
-end
-
-
-function Work:set_estimate(skill_name, estimate_string)
-	-- Validate estimate string
-	if Work.translate_estimate(estimate_string) == 0 then
-		return
-	end
-
- 	self.estimates[skill_name] = estimate_string
-end
-
--- HELPER FUNCTIONS -----------------------------------------------------------
--- 
-
--- This is a helper function that essentially maps "get_id" over a set of work
--- items. This is necessary when we need to work with actual work IDs rather
--- than work rankings.
-function Work.get_ids(work_items)
-	local result = {}
-	for i = 1,#work_items do
-		result[#result+1] = work_items[i].id
-	end
+        result.rank = rank
 	return result
 end
 
 
 
--- TRIAGING FUNCTIONS ---------------------------------------------------------
+--------------------------------------------------------------------------------
+-- Returns true if work item's triage matches triage.
 --
-
 function Work.triage_filter(triage_value, work_item)
         return work_item:merged_triage() == triage_value
 end
 
+
+--------------------------------------------------------------------------------
+-- Returns true if work item's triage is no lower (priority) than triage.
+--
 function Work.downto_triage_filter(triage_value, work_item)
         return work_item:merged_triage() <= triage_value
 end
 
--- This is used to select select items that are 1-1.5, 2-2.5, etc.
-function Work.triage_xx_filter(triage_value, work_item)
-        local triage = work_item:merged_triage()
-
-        if type(triage) ~= "number" then
-                return false
-        end
-
-        return triage >= triage_value and triage < triage_value + 1
-end
 
 
--- If triage_tag is not specified, this sets the "Triage" field in triage
-function Work:set_triage(val, triage_tag)
-        triage_tag = triage_tag or "Triage"
-        self.triage[triage_tag] = val
-end
-
--- Returns the merged triage across all fields. We take the highest priority
--- across all of the triage fields. Setting "Triage" overrides all other
--- values.
+--------------------------------------------------------------------------------
+-- Returns merged triage across all triage fields.
+--
+-- Merge is done by taking the highest priority in the set unless the "Triage"
+-- is explicitly set, in which case that value is taken.
+--
 function Work:merged_triage()
         if self.triage.Triage then
                 return self.triage.Triage
@@ -142,67 +136,98 @@ function Work:merged_triage()
 end
 
 
--- PARSE ESTIMATES ------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- Sums the skill demand for an array of work items.
 --
-
--- This converts a T-shirt estimate label into a number of weeks
-function Work.translate_estimate(est_string)
-        local scalar = 1
-        local unit
-        local units = {["S"] = 1, ["M"] = 2, ["L"] = 3, ["Q"] = 13}
-
-        -- Look for something like "4L"
-        for u, _ in pairs(units) do
-                scalar, unit = string.match(est_string, "^(%d*)(" .. u .. ")")
-                if unit then break end
-        end
-
-        -- If couldn't find a unit, then return 0
-        if unit == nil then
-                -- io.stderr:write(string.format("Unable to parse: %s\n", est_string))
-                return 0
-        end
-
-        -- If couldn't find a scalar, it's 1
-        if scalar == "" then scalar = 1 end
-
-        return scalar * units[unit]
+-- NOTE: Returns the running totals as a second result.
+--
+function Work.sum_demand(work_items)
+	local result = running_demand(work_items)
+	return result[#result], result
 end
 
--- This converts the estimate table for a work item into a table with week
--- estimates as values.
+
+
+--------------------------------------------------------------------------------
+-- Returns true if any required skill is negative.
+--
+function Work:is_any_demanded_skill_negative(supply)
+	local result = false
+	for skill, demand in pairs(self.estimates) do
+		if demand ~= '' and supply[skill] < 0 then
+			result = true
+			break
+		end
+	end
+	return result
+end
+
+
+--------------------------------------------------------------------------------
+-- Finds first work item that is understaffed in a ranked worklist.
+--
+-- NOTE: This also returns the running demand and running supply.
+--
+function Work.find_feasible_line(work_items, supply)
+        local feasible_line = #work_items
+        local demand_total, running_demand = Work.sum_demand(work_items)
+        local running_supply = {}
+	for i = 1,#running_demand do
+		running_supply[#running_supply+1] = subtract_skill_demand(
+                        supply,
+                        running_demand[i]
+                )
+	end
+
+	for i = 1,#running_supply do
+		if is_any_skill_negative(running_supply[i]) then
+			feasible_line = i - 1
+			break
+		end
+	end
+
+	return feasible_line, running_demand, running_supply
+end
+
+--------------------------------------------------------------------------------
+-- Returns work's estimates as a table of man-week values.
+--
+-- The work estimates is a table of strings like {["App"] = "4Q"}
+--
 function Work:get_skill_demand()
         local result = {}
         for skill, est_str in pairs(self.estimates) do
-                result[skill] = Work.translate_estimate(est_str)
+                result[skill] = Estimates.translate_estimate(est_str)
         end
         return result
 end
 
 
--- SUMMING SKILL DEMAND -------------------------------------------------------
+--==============================================================================
+-- Local functions
 --
 
+
+--------------------------------------------------------------------------------
 -- Adds two skill demand tables together
-function Work.add_skill_demand(skill_demand1, skill_demand2)
+--
+add_skill_demand = function(skill_demand1, skill_demand2)
 	return func.apply_keywise_2(func.add, skill_demand1, skill_demand2)
 end
 
+
+--------------------------------------------------------------------------------
 -- Subtracts skill_demand2 from skill_demand1
-function Work.subtract_skill_demand(skill_demand1, skill_demand2)
+--
+subtract_skill_demand = function(skill_demand1, skill_demand2)
 	return func.apply_keywise_2(func.subtract, skill_demand1, skill_demand2)
 end
 
-
--- Sums the skill demand for an array of work items. Returns the running
--- totals as a second result.
-function Work.sum_demand(work_items)
-	local running_demand = Work.running_demand(work_items)
-	return running_demand[#running_demand], running_demand
-end
-
+--------------------------------------------------------------------------------
 -- Computes the running demand totals for an array of work items.
-function Work.running_demand(work_items)
+--
+running_demand = function(work_items)
 
         -- "map" get_skill_demand over work_items
         local skill_demand = {}
@@ -215,16 +240,18 @@ function Work.running_demand(work_items)
         local cur_total = {}
 
 	for i = 1,#skill_demand do
-                cur_total = Work.add_skill_demand(cur_total, skill_demand[i])
+                cur_total = add_skill_demand(cur_total, skill_demand[i])
                 result[#result+1] = cur_total
 	end
 
         return result
 end
 
--- This is a helper function used to check if any skill values are < 0. Such a
--- case implies an infeasible plan.
-function Work.is_any_skill_negative(skills)
+
+--------------------------------------------------------------------------------
+-- Returns true if any value in the skills table is negative.
+--
+is_any_skill_negative = function(skills)
 	local result = false
 	for skill, avail in pairs(skills) do
 		if avail < 0 then
@@ -234,38 +261,5 @@ function Work.is_any_skill_negative(skills)
 	end
 	return result
 end
-
-function Work:is_any_demanded_skill_negative(supply)
-	local result = false
-	for skill, demand in pairs(self.estimates) do
-		if demand ~= '' and supply[skill] < 0 then
-			result = true
-			break
-		end
-	end
-	return result
-end
-
-function Work.find_feasible_line(work_items, supply)
-        local feasible_line = #work_items
-        local demand_total, running_demand = Work.sum_demand(work_items)
-        local running_supply = {}
-	for i = 1,#running_demand do
-		running_supply[#running_supply+1] = Work.subtract_skill_demand(
-                        supply,
-                        running_demand[i]
-                )
-	end
-
-	for i = 1,#running_supply do
-		if Work.is_any_skill_negative(running_supply[i]) then
-			feasible_line = i - 1
-			break
-		end
-	end
-
-	return feasible_line, running_demand, running_supply
-end
-
 
 return Work

@@ -2,6 +2,11 @@ local func = require('functional')
 
 Tags = {}
 
+--------------------------------------------------------------------------------
+-- Parses tags-like string into table.
+--
+-- tag_string looks like "key1:value1,key2:value2"
+--
 function Tags.parse_tags(tag_string)
 	local result = {}
 
@@ -22,6 +27,9 @@ function Tags.parse_tags(tag_string)
 	return result
 end
 
+--------------------------------------------------------------------------------
+-- Converts table to tags-like string.
+--
 function Tags.tags_to_string(tags, sep)
         if not tags then
                 return ""

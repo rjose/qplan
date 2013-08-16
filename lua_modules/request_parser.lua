@@ -2,35 +2,23 @@ require('string_utils')
 
 local RequestParser = {}
 
-function RequestParser.parse_query_params(qstring)
-        -- "/app/web/rbt?triage=1&track=sop"
-        local result = {}
-        local pieces = qstring:split("&")
-        for i = 1,#pieces do
-                local pair = pieces[i]:split("=")
-                local key = pair[1]
-                result[key] = result[key] or {}
-                result[key][#result[key]+1] = pair[2]
-        end
-        return result
-end
 
-function RequestParser.parse_cookies(cstring)
-        -- 'name="Borvo"; auth="123"'
-        local result = {}
-        if cstring == nil then
-                return result
-        end
+--==============================================================================
+-- Local declarations
+--
+local parse_cookies
+local parse_query_params
 
-        local pieces = cstring:split("; ")
-        for i = 1,#pieces do
-                local pair = pieces[i]:split("=")
-                -- Remove the quotes
-                result[pair[1]] = string.sub(pair[2], 2, -2)
-        end
-        return result
-end
 
+--==============================================================================
+-- Public API
+--
+
+--------------------------------------------------------------------------------
+-- Parses request string into a table.
+--
+-- This includes headers, cookies, and query params.
+--
 function RequestParser.parse_request(req_str)
         local result = {}
         result.status = 0
@@ -58,7 +46,7 @@ function RequestParser.parse_request(req_str)
         result.path_pieces = qparams_pieces[1]:split("/")
 
         if #qparams_pieces == 2 then
-                result.qparams = RequestParser.parse_query_params(qparams_pieces[2])
+                result.qparams = parse_query_params(qparams_pieces[2])
         elseif #qparams_pieces > 2 then
                 -- Shouldn't have more than two parts
                 result.status = -1
@@ -66,9 +54,57 @@ function RequestParser.parse_request(req_str)
         end
 
         -- Parse cookies
-        result.cookies = RequestParser.parse_cookies(result.headers.cookie)
+        result.cookies = parse_cookies(result.headers.cookie)
 
         return result
 end
 
+
+
+--==============================================================================
+-- Local functions
+--
+
+--------------------------------------------------------------------------------
+-- Converts query param portion of URL to table.
+--
+-- Sample input string: "/app/web/rbt?triage=1&track=sop"
+--
+parse_query_params = function(qstring)
+        local result = {}
+        local pieces = qstring:split("&")
+        for i = 1,#pieces do
+                local pair = pieces[i]:split("=")
+                local key = pair[1]
+                result[key] = result[key] or {}
+                result[key][#result[key]+1] = pair[2]
+        end
+        return result
+end
+
+
+--------------------------------------------------------------------------------
+-- Converts cookie string into table.
+--
+-- Sample input string: 'name="Borvo"; auth="123"'
+--
+parse_cookies = function(cstring)
+        local result = {}
+        if cstring == nil then
+                return result
+        end
+
+        local pieces = cstring:split("; ")
+        for i = 1,#pieces do
+                local pair = pieces[i]:split("=")
+                -- Remove the quotes
+                result[pair[1]] = string.sub(pair[2], 2, -2)
+        end
+        return result
+end
+
+
+--==============================================================================
+-- Module
+--
 return RequestParser

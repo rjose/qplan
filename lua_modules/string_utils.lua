@@ -1,5 +1,8 @@
 local string_utils = {}
 
+--------------------------------------------------------------------------------
+-- Splits a string into an array using a separator.
+--
 function string:split(sSeparator, nMax, bRegexp)
 	assert(sSeparator ~= '')
 	assert(nMax == nil or nMax >= 1)
@@ -25,6 +28,10 @@ function string:split(sSeparator, nMax, bRegexp)
 	return aRecord
 end
 
+
+--------------------------------------------------------------------------------
+-- Joins array of items into string.
+--
 function string_utils.join(items, sep)
 	local result = ""
 
@@ -38,6 +45,10 @@ function string_utils.join(items, sep)
 	return result
 end
 
+
+--------------------------------------------------------------------------------
+-- Truncates string with optional ellipsis.
+--
 function string:truncate(l, options)
         if self:len() <= l then
                 return self

@@ -3,6 +3,29 @@ require('string_utils')
 
 TestRouteRequest = {}
 
+local sample_app_router = function(req)
+        -- Need something like "/app/web/rbt"
+        if #req.path_pieces < 4 then
+                return nil
+        end
+
+        if req.path_pieces[2] ~= "app" then
+                return nil
+        end
+
+        -- NOTE: This is where we'll actually need to hook into qplan UI code
+        local content_type = "application/json"
+        local content = [[{
+                "track_names": ["T1", "T2", "T3"]
+        }
+        ]]
+
+        result = RequestRouter.construct_response(200, content_type, content)
+        return result
+end
+
+RequestRouter.routers = {sample_app_router, RequestRouter.static_file_router}
+
 -- STATIC FILE TESTS ----------------------------------------------------------
 --
 
@@ -51,6 +74,8 @@ end
 
 -- APP ROUTE TESTS ------------------------------------------------------------
 --
+
+
 
 function TestRouteRequest:test_app_request()
         local req = {}
