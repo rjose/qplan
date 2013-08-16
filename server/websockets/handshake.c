@@ -6,10 +6,14 @@
 
 #include <openssl/sha.h>
 
-#include "ws.h"
+#include "base64.h"
 #include "constants.h"
 #include "errors.h"
-#include "base64.h"
+#include "ws.h"
+
+/*==============================================================================
+ * Defines
+ */
 
 #define MAX_HANDSHAKE_RESPONSE_LEN 300
 #define MAX_WEBSOCKET_KEY_LEN 40
@@ -17,13 +21,20 @@
 #define SEC_WEBSOCKET_KEY "Sec-WebSocket-Key"
 #define SEC_WEBSOCKET_KEY_LEN 17
 
+
+/*==============================================================================
+ * Static declarations
+ */
+
 static char ws_magic_string[] = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 static int get_ws_key(char *, size_t, const char *);
 
+
 /*==============================================================================
  * Public API
  */
+
 
 /*------------------------------------------------------------------------------
  * Checks if request string is start of websocket handshake.
@@ -46,14 +57,11 @@ ws_is_handshake(const char* req_str)
         return 1;
 }
 
-/*
- * This generates a response string appropriate for completing the websocket handshake.
- *
- * NOTE: We're assuming req_str is a valid handshake string.
+/*------------------------------------------------------------------------------
+ * Generates a response string for completing a websocket handshake.
  *
  * NOTE: This function allocates memory for the response, so the caller must
  * free it when done.
- *
  */
 const char *ws_complete_handshake(const char *req_str)
 {
@@ -112,6 +120,10 @@ error:
  * Static functions
  */
 
+
+/*------------------------------------------------------------------------------
+ * Returns websocket key in request string.
+ */
 static int
 get_ws_key(char *dst, size_t n, const char *req_str)
 {
@@ -130,4 +142,3 @@ get_ws_key(char *dst, size_t n, const char *req_str)
 
         return 0;
 }
-

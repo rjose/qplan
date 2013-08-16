@@ -303,6 +303,9 @@ handle_websocket_request(WHContext *wh_context, const char* request_string)
 
         /*
          * Read and handle messages
+         *
+         * NOTE: Currently, text frames are just echoed back. When we need to
+         * customize this behavior, we should tie this up to lua.
          */
         while(1) {
                 frame_type = ws_read_next_message(connfd, my_buffered_read, &message);

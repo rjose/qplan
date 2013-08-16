@@ -6,15 +6,23 @@
 
 #include <sys/types.h>
 
-#include "util.h"
-#include "errors.h"
 #include "constants.h"
+#include "errors.h"
+#include "util.h"
 
-/*
+/*==============================================================================
+ * Public API
+ */
+
+
+/*------------------------------------------------------------------------------
+ * Makes a text frame based for the specified message.
+ *
  * NOTE: This function will always set the FIN bit to 1. If you want to send
  * fragments, set this to 0 once you get the frame back.
  */
-size_t ws_make_text_frame(const char *message, const uint8_t mask[4], uint8_t **frame_p)
+size_t
+ws_make_text_frame(const char *message, const uint8_t mask[4], uint8_t **frame_p)
 {
         uint64_t i;
         uint64_t message_len;
@@ -91,7 +99,12 @@ size_t ws_make_text_frame(const char *message, const uint8_t mask[4], uint8_t **
         return frame_len;
 }
 
-size_t ws_make_close_frame(uint8_t **frame_p)
+
+/*------------------------------------------------------------------------------
+ * Makes a close frame.
+ */
+size_t
+ws_make_close_frame(uint8_t **frame_p)
 {
         uint8_t byte0, byte1;     /* First two bytes of the frame */
         uint8_t *result = NULL;
@@ -115,7 +128,12 @@ size_t ws_make_close_frame(uint8_t **frame_p)
         return 2;
 }
 
-size_t ws_make_ping_frame(uint8_t **frame_p)
+
+/*------------------------------------------------------------------------------
+ * Makes a ping frame.
+ */
+size_t
+ws_make_ping_frame(uint8_t **frame_p)
 {
         uint8_t byte0, byte1;     /* First two bytes of the frame */
         uint8_t *result = NULL;
@@ -138,7 +156,12 @@ size_t ws_make_ping_frame(uint8_t **frame_p)
         return 2;
 }
 
-size_t ws_make_pong_frame(uint8_t **frame_p)
+
+/*------------------------------------------------------------------------------
+ * Makes a pong frame.
+ */
+size_t
+ws_make_pong_frame(uint8_t **frame_p)
 {
         uint8_t byte0, byte1;     /* First two bytes of the frame */
         uint8_t *result = NULL;

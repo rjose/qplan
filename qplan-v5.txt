@@ -578,11 +578,12 @@ I also want to go through the websockets library. I wonder if we'll end up
 splitting the ws.c file into a couple of pieces -- it's pretty big right now.
 Let's move stuff from the header to the C file first. After that, we can break
 things up (handshake, frames, read?). Let's try pulling handshake out first.
-Done. Next, let's do the frame functions.
+Done. Next, let's do the frame functions. Done. I also moved the read message
+functions to their own file.
 
-Afterwards, we'll clean up the C files.
+Now, we can clean up the formatting of the comments.
 
-TOOD: Alphabetize public API and static functions
+
 
 
 Refactor
