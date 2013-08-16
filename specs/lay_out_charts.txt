@@ -1,0 +1,26 @@
+Lay out Charts
+==============
+Rino Jose <@rjose>
+v1, Aug 16, 2013
+State: Backlog
+
+Overview
+--------
+The goal of this is to get some key charts in place for doing a planning
+meeting.
+
+Implementation
+--------------
+. Figure out what questions people want to ask [][]
+. Sketch out charts that will be useful [][]
+. Implement charts in d3 [][][][]
+. Figure out data to broadcast for each chart [][][]
+. Set up data pipeline to pull data from sources [][][][][][][][]
+. Write shell scripts to package the pipeline [][][][][]
+
+
+Thoughts
+--------
+
+Action Items
+------------

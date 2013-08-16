@@ -581,10 +581,7 @@ things up (handshake, frames, read?). Let's try pulling handshake out first.
 Done. Next, let's do the frame functions. Done. I also moved the read message
 functions to their own file.
 
-.Charts for all occasions
-Alright, let's get back to it now. Let's start with what questions we need to
-answer.
-
+NOTE: Moving the spec for this to specs/lay_out_charts.txt
 
 
 Refactor
@@ -740,7 +737,6 @@ Yeah, let's try this.
 
 Action Items
 ------------
-- TODO: Revise to move Step 9 to a feature spec
 - Use a common format for stacked output (e.g., make gcat.py match stackstreams)
 - Add favicon
 - Work on layout of charts (center, etc.)
