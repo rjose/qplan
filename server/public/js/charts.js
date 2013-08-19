@@ -9,18 +9,21 @@ function QuadrantDemoCtrl($scope, $element) {
                 .attr("width", width)
                 .attr("height", height);
 
-        var margin = 10;
+        var margin = 20;
+        var radius = 6;
+        var hasExtPrereqColor = "#17becf";
+        var isExtPrereqColor = "#d62728";
 
         // This dataset will have been sent by the client.
         var dataset = [
-                [5, 20],
-                [450, 90],
-                [250, 50],
-                [100, 30]
+                {name: 'Task 1', has_ext_prereq: true, effort: 5, value: 20},
+                {name: 'Task 22', effort: 450, value: 90},
+                {name: 'Task 54', is_ext_prereq: true, effort: 250, value: 50},
+                {name: 'Task 91', effort: 100, value: 30}
         ];
 
-        var maxEffort = d3.max(dataset, function(d) {return d[0]});
-        var maxValue = d3.max(dataset, function(d) {return d[1]});
+        var maxEffort = d3.max(dataset, function(d) {return d.effort});
+        var maxValue = d3.max(dataset, function(d) {return d.value});
 
         var xScale = d3.scale.linear()
                 .domain([0, maxEffort])
@@ -60,9 +63,29 @@ function QuadrantDemoCtrl($scope, $element) {
                 .data(dataset)
                 .enter()
                 .append("circle")
-                .attr("cx", function(d) {return xScale(d[0])})
-                .attr("cy", function(d) {return yScale(d[1])})
-                .attr("r", 5);
+                .on("click", function(d) {
+                        console.log(d.name);
+                })
+                .attr("cx", function(d) {return xScale(d.effort)})
+                .attr("cy", function(d) {return yScale(d.value)})
+                .attr("r", radius)
+                .style("fill", function(d) {
+                        if (d.is_ext_prereq) {
+                                return isExtPrereqColor;
+                        }
+                        else {
+                                return "black";
+                        }
+                })
+                .style("stroke-width", 3)
+                .style("stroke", function(d) {
+                        if (d.has_ext_prereq) {
+                                return hasExtPrereqColor;
+                        }
+                        else {
+                                return "none"
+                        }
+                });
 }
 
 chartsModule.directive("quadrantdemo", function() {
