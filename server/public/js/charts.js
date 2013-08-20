@@ -8,6 +8,7 @@ var chartsModule = angular.module("charts", []);
 // Static declarations
 //
 var drawQuadChart = null;
+var drawReleaseChart = null;
 
 
 //==============================================================================
@@ -60,8 +61,8 @@ chartsModule.controller("LiveViewCtrl",
                   releaseBands: [["Aug 26, 2013", "Aug 30, 2013"],
                                  ["Sep 26, 2013", "Sep 30, 2013"]],
                   featureDates: [
-                     {name: "Feature 1", expected: "Sep 15, 2013", target: "Sep 20, 2013"},
-                     {name: "Feature 2", expected: "Sep 19, 2013", target: "Sep 30, 2013"}
+                     {name: "Feature T1", expected: "Sep 15, 2013", target: "Sep 20, 2013"},
+                     {name: "Feature T2", expected: "Sep 19, 2013", target: "Sep 30, 2013"}
                      ]
                }
             ]
@@ -97,7 +98,7 @@ chartsModule.directive("chart", function() {
                drawQuadChart(svg, scope);
             }
             else if (scope.chart.type == 'releasechart') {
-               console.log(scope.chart.dataset);
+               drawReleaseChart(svg, scope);
             }
 
          });
@@ -112,7 +113,7 @@ chartsModule.directive("chart", function() {
 
 
 //------------------------------------------------------------------------------
-// Draws quadchart in svg element using data from "chart".
+// Draws quadchart in svg element.
 //
 drawQuadChart = function(svg, scope) {
    var chart = scope.chart;
@@ -204,4 +205,88 @@ drawQuadChart = function(svg, scope) {
                            return "none"
                    }
            });
+}
+
+
+//------------------------------------------------------------------------------
+// Draws release chart in svg element.
+//
+drawReleaseChart = function(svg, scope) {
+   var chart = scope.chart;
+   if (!chart.type) return;
+
+   var timeScale = d3.time.scale();
+
+   var width = svg.attr("width");
+   var height = svg.attr("height");
+   var topMargin = 25;
+   var leftMargin = 25;
+   var itemMargin = 15;
+   var itemHeight = 20;
+   var groupMargin = 25;
+   var dates = [];
+   var curY = topMargin;
+   var groupYValues = {};
+   var releaseBands = [];
+
+   //
+   // Collect dates from each group so we can set up the timescale
+   //
+   // Also compute y values for each feature as well as for the release bands.
+   chart.dataset.forEach(function(d) {
+      var group = d.group;
+      groupYValues[group] = {
+         featureYValues: [],
+         bandYValues: [curY]
+      };
+
+      d.featureDates.forEach(function(feature) {
+         dates.push(new Date(feature.expected));
+         dates.push(new Date(feature.target));
+         groupYValues[group].featureYValues.push(curY);
+         curY += (itemHeight + itemMargin);
+      });
+      groupYValues[group].bandYValues.push(curY);
+      curY += groupMargin;
+
+      d.releaseBands.forEach(function(band) {
+         var bandStart = new Date(band[0]);
+         var bandEnd = new Date(band[1]);
+         dates.push(bandStart);
+         dates.push(bandEnd);
+
+         // Store release band data
+         releaseBands.push({
+            dates: [bandStart, bandEnd],
+            yVals: groupYValues[group].bandYValues
+         });
+      });
+
+   });
+   timeScale.domain([d3.min(dates) , d3.max(dates)]);
+   timeScale.range([0, width]);
+
+
+   // Add release bands
+   svg.selectAll("rect.band")
+      .data(releaseBands)
+      .enter()
+      .append("rect")
+      .attr("class", "band")
+      .attr("x", function(d) {return timeScale(d.dates[0])})
+      .attr("y", function(d) {return d.yVals[0]})
+      .attr("width", function(d) {
+         return timeScale(d.dates[1]) - timeScale(d.dates[0]);
+      })
+      .attr("height", function(d) {
+         return d.yVals[1] - d.yVals[0];
+      })
+      .style("fill", "blue");
+
+   // TODO: Add group label
+
+   // TODO: Add frame
+   // TODO: Add title
+   // TODO: Add date axis ticks
+
 }
