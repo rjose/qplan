@@ -14,9 +14,18 @@
 <body>
 
    <div ng-controller="LiveViewCtrl">
-      <h2>{{ title }}</h2>
-      <button ng-click="demoQuadChart()">QuadChart</button>
-      <div chart id="chart"></div>
+      <div id="main-content">
+         <h2>{{ title }}</h2>
+         <button ng-click="demoQuadChart()">QuadChart</button>
+         <div chart id="chart"></div>
+      </div>
+
+      <div id="aux-content">
+         <h3>{{ aux_title }}</h3>
+         <ul>
+            <li ng-repeat='field in fields'>{{ field.key }}: {{ field.value }}</li>
+         </ul>
+      </div>
    </div>
 
 

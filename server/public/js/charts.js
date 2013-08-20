@@ -17,9 +17,10 @@ chartsModule.controller("LiveViewCtrl",
    ['$scope',
    function($scope) {
       $scope.title = "Chart Demo";
+      $scope.aux_title = "";
       $scope.chart = {};
 
-      // Sets data for chart
+      // Sets data for quadchart demo
       $scope.demoQuadChart = function() {
          $scope.chart = {
             type: "quadchart",
@@ -58,7 +59,7 @@ chartsModule.directive("chart", function() {
                .attr("height", height);
 
             if (scope.chart.type == 'quadchart') {
-               drawQuadChart(svg, scope.chart);
+               drawQuadChart(svg, scope);
             }
 
          });
@@ -75,7 +76,9 @@ chartsModule.directive("chart", function() {
 //------------------------------------------------------------------------------
 // Draws quadchart in svg element using data from "chart".
 //
-drawQuadChart = function(svg, chart) {
+drawQuadChart = function(svg, scope) {
+   var chart = scope.chart;
+
    if (!chart.type) return;
 
    var margin = 20;
@@ -128,10 +131,20 @@ drawQuadChart = function(svg, chart) {
            .enter()
            .append("circle")
            .on("click", function(d) {
-                   scope.name = d.name;
-                   scope.$apply();
-
-                   //svg.selectAll("*").remove();
+               // TODO: Figure out the best place to do this
+               scope.aux_title = d.name;
+               var fields = [
+                {key: 'Effort', value: d.effort},
+                {key: 'Value', value: d.value},
+               ];
+               if (d.has_ext_prereq) {
+                  fields.push({key:'Dependent on other teams', value:'Yes'});
+               }
+               if (d.is_ext_prereq) {
+                  fields.push({key:'Key for other teams', value:'Yes'});
+               }
+               scope.fields = fields;
+               scope.$apply();
            })
            .attr("cx", function(d) {return xScale(d.effort)})
            .attr("cy", function(d) {return yScale(d.value)})
