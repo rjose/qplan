@@ -20,7 +20,9 @@ chartsModule.controller("LiveViewCtrl",
       $scope.aux_title = "";
       $scope.chart = {};
 
+      //------------------------------------------------------------------------
       // Sets data for quadchart demo
+      //
       $scope.demoQuadChart = function() {
          $scope.chart = {
             type: "quadchart",
@@ -34,6 +36,39 @@ chartsModule.controller("LiveViewCtrl",
             ]
          };
       }
+
+      //------------------------------------------------------------------------
+      // Sets data for quadchart demo
+      //
+      $scope.demoReleaseChart = function() {
+         $scope.chart = {
+            type: "releasechart",
+            options: {
+            },
+            dataset:  [
+               {
+                  group: 'Phone',
+                  releaseBands: [["Aug 26, 2013", "Aug 30, 2013"],
+                                 ["Sep 26, 2013", "Sep 30, 2013"]],
+                  featureDates: [
+                     {name: "Feature 1", expected: "Aug 15, 2013", target: "Aug 20, 2013"},
+                     {name: "Feature 2", expected: "Aug 19, 2013", target: "Aug 30, 2013"}
+                     ]
+               },
+               {
+                  group: 'Tablet',
+                  releaseBands: [["Aug 26, 2013", "Aug 30, 2013"],
+                                 ["Sep 26, 2013", "Sep 30, 2013"]],
+                  featureDates: [
+                     {name: "Feature 1", expected: "Sep 15, 2013", target: "Sep 20, 2013"},
+                     {name: "Feature 2", expected: "Sep 19, 2013", target: "Sep 30, 2013"}
+                     ]
+               }
+            ]
+         };
+      }
+
+      // End function
    }]
 );
 
@@ -60,6 +95,9 @@ chartsModule.directive("chart", function() {
 
             if (scope.chart.type == 'quadchart') {
                drawQuadChart(svg, scope);
+            }
+            else if (scope.chart.type == 'releasechart') {
+               console.log(scope.chart.dataset);
             }
 
          });
