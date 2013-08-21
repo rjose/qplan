@@ -9,6 +9,7 @@ var chartsModule = angular.module("charts", []);
 //
 var drawQuadChart = null;
 var drawReleaseChart = null;
+var drawReleaseChart2 = null;
 
 
 //==============================================================================
@@ -53,34 +54,22 @@ chartsModule.controller("LiveViewCtrl",
          $scope.$apply();
       };
 
-
-      //------------------------------------------------------------------------
-      // Sets data for release chart demo
-      //
       $scope.demoReleaseChart = function() {
          $scope.chart = {
-            type: "releasechart",
-            options: {
-            },
-            dataset:  [
-               {
-                  group: 'Phone',
-                  releaseBands: [["Aug 26, 2013", "Aug 30, 2013"],
-                                 ["Sep 26, 2013", "Sep 30, 2013"]],
-                  featureDates: [
-                     {name: "Feature 1", expected: "Aug 15, 2013", target: "Aug 20, 2013"},
-                     {name: "Feature 2", expected: "Aug 19, 2013", target: "Aug 30, 2013"}
-                     ]
-               },
-               {
-                  group: 'Tablet',
-                  releaseBands: [["Aug 26, 2013", "Aug 30, 2013"],
-                                 ["Sep 26, 2013", "Sep 30, 2013"]],
-                  featureDates: [
-                     {name: "Feature T1", expected: "Sep 15, 2013", target: "Sep 20, 2013"},
-                     {name: "Feature T2", expected: "Sep 19, 2013", target: "Sep 30, 2013"}
-                     ]
-               }
+            type: 'releasechart',
+            options: {},
+            dataset: [
+               {group: 'Phone',
+               releaseDates: ["Aug 30, 2013", "Sep 30, 2013"],
+               features: [
+                  {name: "Feature1", expected: "Aug 15, 2013", target: "Aug 30, 2013"},
+                  {name: "Feature2", expected: "Aug 25, 2013", target: "Aug 30, 2013"}
+               ]},
+               {group: 'Tablet',
+               releaseDates: ["Oct 15, 2013"],
+               features: [
+                  {name: "Tab1", expected: "Sep 15, 2013", target: "Oct 15, 2013"}
+               ]}
             ]
          };
       }
@@ -116,7 +105,7 @@ chartsModule.directive("chart", function() {
                drawQuadChart(svg, scope);
             }
             else if (scope.chart.type == 'releasechart') {
-               drawReleaseChart(svg, scope);
+               drawReleaseChart2(svg, scope);
             }
 
          });
@@ -223,6 +212,85 @@ drawQuadChart = function(svg, scope) {
                            return "none"
                    }
            });
+}
+
+
+function band(selection, timeScale) {
+   // Add main line
+   selection.append("line")
+      .attr("x1", function(d) {return timeScale(new Date(d.expected))})
+      .attr("x2", function(d) {return timeScale(new Date(d.target))})
+      .attr("y1", function(d, i) {return 20 + i * 20})
+      .attr("y2", function(d, i) {return 20 + i * 20})
+      .style("stroke-width", 2)
+      .style("stroke", "purple");
+
+   // Add start circle
+   selection.append("circle")
+      .attr("cx", function(d) {return timeScale(new Date(d.expected))})
+      .attr("cy", function(d, i) {return 20 + i * 20})
+      .attr("r", 5)
+      .style("fill", "purple");
+
+   // Add end circle
+   selection.append("circle")
+      .attr("cx", function(d) {return timeScale(new Date(d.target))})
+      .attr("cy", function(d, i) {return 20 + i * 20})
+      .attr("r", 5)
+      .style("fill", "purple");
+}
+
+
+drawReleaseChart2 = function(svg, scope) {
+   var chart = scope.chart;
+   if (!chart.type) return;
+
+   var width = svg.attr("width");
+   var height = svg.attr("height");
+   var timeScale = d3.time.scale();
+   var dates = [];
+   var groupMargin = 25;
+   var itemSep = 10;
+   var groupSep = 30;
+   var topMargin = 20;
+   var hMargin = 20;
+   var features = [];
+
+   //
+   // Gather data together:
+   //
+   //    - Collect dates to set up time scale
+   //    - Collect features to render
+   //
+   for (var i=0; i < chart.dataset.length; i++) {
+      var d = chart.dataset[i];
+      console.log(d.group);
+
+      // Collect release dates
+      for (var j=0; j < d.releaseDates.length; j++) {
+         var date = d.releaseDates[j];
+         dates.push(new Date(date));
+      }
+
+      // Collect feature dates
+      for (var j=0; j < d.features.length; j++) {
+         var feature = d.features[j];
+         dates.push(new Date(feature.expected));
+         dates.push(new Date(feature.target));
+         features.push(feature);
+      }
+   }
+   timeScale.domain([d3.min(dates) , d3.max(dates)]);
+   timeScale.range([hMargin, width - hMargin]);
+
+   //
+   // Draw feature bands
+   //
+   svg.selectAll("g.band")
+      .data(features)
+      .enter()
+      .append("g").attr("class", "band")
+      .call(band, timeScale);
 }
 
 
