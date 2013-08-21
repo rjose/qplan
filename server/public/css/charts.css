@@ -12,3 +12,7 @@
         width: 500px;
         height: 500px;
 }
+
+.visible-false {
+        display: none;
+}

@@ -6,7 +6,8 @@ import json
 
 data = sys.stdin.read()
 
-result = {'command': 'raw', 'data': data}
+# TODO: Add flag for setting title
+result = {'title': 'Raw text', 'command': 'raw', 'data': data}
 
 h = http.client.HTTPConnection('localhost:8888')
 h.request("POST","/broadcast", json.dumps(result),

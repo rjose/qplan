@@ -17,9 +17,33 @@ var drawReleaseChart = null;
 chartsModule.controller("LiveViewCtrl",
    ['$scope',
    function($scope) {
+      $scope.type = "chart";
       $scope.title = "Chart Demo";
       $scope.aux_title = "";
       $scope.chart = {};
+      $scope.raw = "";
+
+      //
+      // Set up websocket
+      //
+      var websocket = new WebSocket("ws://" + document.location.hostname + ":8888");
+      websocket.onopen = function(event) {
+         console.log("Open!");
+      };
+      websocket.onmessage = function(event) {
+         var data = JSON.parse(event.data);
+         if (data.command == 'raw') {
+            $scope.type = 'raw';
+            $scope.title = data.title;
+            $scope.chart = {};
+            $scope.raw = data.data;
+            $scope.aux_title = '';
+         }
+         else {
+            console.log("Got " + data.command);
+         }
+         $scope.$apply();
+      };
 
       //------------------------------------------------------------------------
       // Sets data for quadchart demo
