@@ -31,12 +31,20 @@ chartsModule.controller("LiveViewCtrl",
          console.log("Open!");
       };
       websocket.onmessage = function(event) {
-         var data = JSON.parse(event.data);
-         if (data.command == 'raw') {
+         var message = JSON.parse(event.data);
+         if (message.command == 'raw') {
             $scope.type = 'raw';
-            $scope.title = data.title;
+            $scope.title = message.title;
+            $scope.raw = message.data;
             $scope.chart = {};
-            $scope.raw = data.data;
+            $scope.aux_title = '';
+         }
+         else if (message.command == 'chart') {
+            console.log(message);
+            $scope.type = 'chart';
+            $scope.title = message.title;
+            $scope.chart = message.data;
+            $scope.raw = '';
             $scope.aux_title = '';
          }
          else {
@@ -45,25 +53,9 @@ chartsModule.controller("LiveViewCtrl",
          $scope.$apply();
       };
 
-      //------------------------------------------------------------------------
-      // Sets data for quadchart demo
-      //
-      $scope.demoQuadChart = function() {
-         $scope.chart = {
-            type: "quadchart",
-            options: {
-            },
-            dataset:  [
-               {name: 'Task 1', has_ext_prereq: true, effort: 5, value: 20},
-               {name: 'Task 22', has_ext_prereq: true, effort: 450, value: 90},
-               {name: 'Task 54', is_ext_prereq: true, effort: 250, value: 50},
-               {name: 'Task 91', effort: 100, value: 30}
-            ]
-         };
-      }
 
       //------------------------------------------------------------------------
-      // Sets data for quadchart demo
+      // Sets data for release chart demo
       //
       $scope.demoReleaseChart = function() {
          $scope.chart = {
@@ -110,6 +102,8 @@ chartsModule.directive("chart", function() {
          var height = el.offsetHeight;
 
          scope.$watch('chart', function() {
+            if (!scope.chart) return;
+
             // Clear out contents before creating new chart
             $(el).empty();
 
