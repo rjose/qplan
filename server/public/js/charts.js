@@ -334,14 +334,26 @@ drawReleaseChart2 = function(svg, scope) {
    // Draw x axis
    //
    var xAxis = d3.svg.axis()
-      .scale(timeScale);
-   xAxis.tickValues(releaseDates);
-   xAxis.tickFormat(d3.time.format("%b %e"));
+      .scale(timeScale)
+      .tickValues(releaseDates)
+      .tickFormat(d3.time.format("%b %e"));
 
    svg.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + (height - 50) + ")")
       .call(xAxis);
+
+   //
+   // Draw frame around chart
+   //
+   svg.append("rect")
+      .attr("x", 0)
+      .attr("y", 0)
+      .attr("width", width)
+      .attr("height", height)
+      .style("fill", "none")
+      .style("stroke-width", 3)
+      .style("stroke", "black");
 }
 
 

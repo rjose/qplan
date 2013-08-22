@@ -16,3 +16,9 @@
 .visible-false {
         display: none;
 }
+
+.x.axis .domain {
+        fill: none;
+        stroke-width: 2px;
+        stroke: black;
+}
