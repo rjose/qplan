@@ -5,17 +5,20 @@ import sys
 import json
 
 title = sys.stdin.readline()
-labels = []
-values = []
+dataset = []
 
 # TODO: Add support for adding metadata
 for line in sys.stdin.readlines():
         fields = line.split("\t")
-        labels.append(fields[0])
-        values.append(fields[1])
+        dataset.append({'value': fields[1], 'label': fields[0]})
 
-result = {'command': 'piechart',
-                'data': {'title': title, 'labels': labels, 'values': values}}
+result = {'command': 'chart',
+          'title': title,
+          'data' : {
+            'type': 'piechart',
+            'dataset': dataset
+          }
+         }
 
 h = http.client.HTTPConnection('localhost:8888')
 h.request("POST","/broadcast", json.dumps(result),
