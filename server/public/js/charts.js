@@ -10,6 +10,9 @@ var chartsModule = angular.module("charts", []);
 var drawQuadChart = null;
 var drawReleaseChart = null;
 var drawReleaseChart2 = null;
+var yValue = null;
+var setChartWidth = null;
+var setChartHeight = null;
 
 
 //==============================================================================
@@ -57,20 +60,14 @@ chartsModule.controller("LiveViewCtrl",
       $scope.demoReleaseChart = function() {
          $scope.chart = {
             type: 'releasechart',
-            options: {},
-            dataset: [
-               {group: 'Phone',
-               releaseDates: ["Aug 30, 2013"],
+            dataset: {
+               releaseDates: ["Aug 30, 2013", "Oct 15, 2013", "Nov 15, 2013"],
                features: [
                   {name: "Feature1", expected: "Aug 15, 2013", target: "Aug 30, 2013"},
-                  {name: "Feature2", expected: "Aug 25, 2013", target: "Aug 30, 2013"}
-               ]},
-               {group: 'Tablet',
-               releaseDates: ["Oct 15, 2013", "Nov 15, 2013"],
-               features: [
+                  {name: "Feature2", expected: "Aug 25, 2013", target: "Aug 30, 2013"},
                   {name: "Tab1", expected: "Sep 15, 2013", target: "Oct 15, 2013"}
-               ]}
-            ]
+               ]
+            }
          };
       }
 
@@ -89,6 +86,7 @@ chartsModule.directive("chart", function() {
          var el = element[0];
          var width = el.offsetWidth;
          var height = el.offsetHeight;
+         console.log(el);
 
          scope.$watch('chart', function() {
             if (!scope.chart) return;
@@ -118,6 +116,24 @@ chartsModule.directive("chart", function() {
 // Static functions
 //
 
+setChartWidth = function(svg, w) {
+   svg.attr("width", w);
+   $('#chart').width(w);
+}
+
+setChartHeight = function(svg, h) {
+   svg.attr("height", h);
+   $('#chart').height(h);
+}
+
+//------------------------------------------------------------------------------
+// Computes y value for bands in releasechart
+//
+yValue = function(i) {
+   var topMargin = 25;
+   var itemSep = 30;
+   return topMargin + i * itemSep
+}
 
 //------------------------------------------------------------------------------
 // Draws quadchart in svg element.
@@ -216,11 +232,8 @@ drawQuadChart = function(svg, scope) {
 
 
 function band(selection, timeScale) {
-   var topMargin = 25;
-   var itemSep = 30;
    var radius = 5;
 
-   var yValue = function(i) {return topMargin + i * itemSep}
 
    // Add main line
    selection.append("line")
@@ -259,19 +272,21 @@ drawReleaseChart2 = function(svg, scope) {
    var chart = scope.chart;
    if (!chart.type) return;
 
-   var width = svg.attr("width");
-   var height = svg.attr("height");
+   var features = chart.dataset.features;
+   var releaseDates = [];
    var timeScale = d3.time.scale();
    var dates = [];
-   var groupMargin = 25;
-   var itemSep = 10;
-   var groupSep = 30;
    var topMargin = 20;
    var hMargin = 15;
-   var features = [];
-   var releaseDates = [];
-   var releaseGroups = [];
    var curY;
+   var height;
+   var width = 960;
+   var axisHeight = 30;
+
+   // Compute height based on number of features
+   height = yValue(features.length) + axisHeight;
+   setChartHeight(svg, height);
+   setChartWidth(svg, width);
 
    //
    // Gather data together:
@@ -280,24 +295,19 @@ drawReleaseChart2 = function(svg, scope) {
    //    - Collect features to render
    //
    curY = topMargin;
-   for (var i=0; i < chart.dataset.length; i++) {
-      var d = chart.dataset[i];
-      var releaseGroup = {name: d.group};
 
-      // Collect release dates
-      for (var j=0; j < d.releaseDates.length; j++) {
-         var date = new Date(d.releaseDates[j]);
-         dates.push(date);
-         releaseDates.push(date)
-      }
+   // Collect release dates
+   for (var j=0; j < chart.dataset.releaseDates.length; j++) {
+      var date = new Date(chart.dataset.releaseDates[j]);
+      releaseDates.push(date);
+      dates.push(date);
+   }
 
-      // Collect feature dates
-      for (var j=0; j < d.features.length; j++) {
-         var feature = d.features[j];
-         dates.push(new Date(feature.expected));
-         dates.push(new Date(feature.target));
-         features.push(feature);
-      }
+   // Collect feature dates
+   for (var j=0; j < features.length; j++) {
+      var feature = features[j];
+      dates.push(new Date(feature.expected));
+      dates.push(new Date(feature.target));
    }
    timeScale.domain([d3.min(dates) , d3.max(dates)]);
    timeScale.range([hMargin, width - 2*hMargin]);
@@ -340,7 +350,7 @@ drawReleaseChart2 = function(svg, scope) {
 
    svg.append("g")
       .attr("class", "x axis")
-      .attr("transform", "translate(0," + (height - 50) + ")")
+      .attr("transform", "translate(0," + (height - 30) + ")")
       .call(xAxis);
 
    //
