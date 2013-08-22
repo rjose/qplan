@@ -9,12 +9,9 @@ var FONT_FAMILY = "Courier New, Courier, monospace";
 // Static declarations
 //
 var yValue = null;
-var setChartWidth = null;
-var setChartHeight = null;
 
 var drawQuadChart = null;
 var drawReleaseChart = null;
-var drawPieChart = null;
 
 //==============================================================================
 // Controllers
@@ -94,7 +91,7 @@ chartsModule.directive("chart", function() {
                drawReleaseChart(svg, scope);
             }
             else if (scope.chart.type == 'piechart') {
-               drawPieChart(svg, scope);
+               charts.piechart.draw(svg, scope);
             }
 
          });
@@ -105,16 +102,6 @@ chartsModule.directive("chart", function() {
 //==============================================================================
 // Static functions
 //
-
-setChartWidth = function(svg, w) {
-   svg.attr("width", w);
-   $('#chart').width(w);
-}
-
-setChartHeight = function(svg, h) {
-   svg.attr("height", h);
-   $('#chart').height(h);
-}
 
 //------------------------------------------------------------------------------
 // Computes y value for bands in releasechart
@@ -141,8 +128,8 @@ drawQuadChart = function(svg, scope) {
    var height = 500;
    var dataset = chart.dataset;
 
-   setChartWidth(svg, width);
-   setChartHeight(svg, height);
+   charts.setChartWidth(svg, width);
+   charts.setChartHeight(svg, height);
 
    var maxEffort = d3.max(dataset, function(d) {return d.effort});
    var maxValue = d3.max(dataset, function(d) {return d.value});
@@ -280,8 +267,8 @@ drawReleaseChart = function(svg, scope) {
 
    // Compute height based on number of features
    height = yValue(features.length) + axisHeight;
-   setChartHeight(svg, height);
-   setChartWidth(svg, width);
+   charts.setChartHeight(svg, height);
+   charts.setChartWidth(svg, width);
 
    // Pull data:
    //
@@ -347,63 +334,4 @@ drawReleaseChart = function(svg, scope) {
       .style("fill", "none")
       .style("stroke-width", 3)
       .style("stroke", "black");
-}
-
-
-//------------------------------------------------------------------------------
-// Draws pie chart in svg element.
-//
-drawPieChart = function(svg, scope) {
-   var chart = scope.chart;
-
-   if (!chart.type) return;
-   var height = 700;
-   var width = 700;
-
-   setChartHeight(svg, height);
-   setChartWidth(svg, width);
-
-   // Parameters
-   //
-   var outerRadius = height / 2.0 * 0.8;
-   var innerRadius = outerRadius/2.0;
-   var leftMargin = 15;
-   var topMargin = 20;
-   var labelSize = 20;
-   var color = d3.scale.category10();
-   var dataset = chart.dataset;
-
-   var arc = d3.svg.arc().innerRadius(innerRadius)
-                         .outerRadius(outerRadius);
-
-   var pie = d3.layout.pie()
-      .value(function(d) {return d.value});
-
-   var arcs = svg.selectAll("g.arc")
-           .data(pie(chart.dataset))
-           .enter()
-           .append("g")
-           .attr("class", "arc")
-           .attr("transform", "translate(" +
-                                   (outerRadius + leftMargin) + "," +
-                                   (outerRadius + topMargin) + ")");
-   arcs.append("path")
-           .attr("fill", function(d, i) {
-                   return color(i);
-           })
-           .attr("d", arc);
-
-   // Add pie wedge labels
-   //
-   arcs.append("text")
-       .attr("transform", function(d) {
-               return "translate(" + arc.centroid(d) + ")";
-       })
-       .attr("text-anchor", "middle")
-       .attr("fill", "white")
-       .attr("font-size", labelSize + "px")
-       .attr("font-family", FONT_FAMILY)
-       .text(function(d) {
-            return d.data.label;
-       });
 }
