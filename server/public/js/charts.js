@@ -216,28 +216,42 @@ drawQuadChart = function(svg, scope) {
 
 
 function band(selection, timeScale) {
+   var topMargin = 25;
+   var itemSep = 30;
+   var radius = 5;
+
+   var yValue = function(i) {return topMargin + i * itemSep}
+
    // Add main line
    selection.append("line")
       .attr("x1", function(d) {return timeScale(new Date(d.expected))})
       .attr("x2", function(d) {return timeScale(new Date(d.target))})
-      .attr("y1", function(d, i) {return 20 + i * 20})
-      .attr("y2", function(d, i) {return 20 + i * 20})
+      .attr("y1", function(d, i) {return yValue(i)})
+      .attr("y2", function(d, i) {return yValue(i)})
       .style("stroke-width", 2)
       .style("stroke", "purple");
 
    // Add start circle
    selection.append("circle")
       .attr("cx", function(d) {return timeScale(new Date(d.expected))})
-      .attr("cy", function(d, i) {return 20 + i * 20})
+      .attr("cy", function(d, i) {return yValue(i)})
       .attr("r", 5)
       .style("fill", "purple");
 
    // Add end circle
    selection.append("circle")
       .attr("cx", function(d) {return timeScale(new Date(d.target))})
-      .attr("cy", function(d, i) {return 20 + i * 20})
-      .attr("r", 5)
+      .attr("cy", function(d, i) {return yValue(i)})
+      .attr("r", radius)
       .style("fill", "purple");
+
+   // Add label
+   var margin = 8;
+   selection.append("text")
+      .attr("x", function(d) {return -radius + timeScale(new Date(d.expected))})
+      .attr("y", function(d, i) {return yValue(i) - margin})
+      .attr("font-size", "11px")
+      .text(function(d) {return d.name});
 }
 
 
@@ -256,6 +270,8 @@ drawReleaseChart2 = function(svg, scope) {
    var hMargin = 15;
    var features = [];
    var releaseDates = [];
+   var releaseGroups = [];
+   var curY;
 
    //
    // Gather data together:
@@ -263,9 +279,10 @@ drawReleaseChart2 = function(svg, scope) {
    //    - Collect dates to set up time scale
    //    - Collect features to render
    //
+   curY = topMargin;
    for (var i=0; i < chart.dataset.length; i++) {
       var d = chart.dataset[i];
-      console.log(d.group);
+      var releaseGroup = {name: d.group};
 
       // Collect release dates
       for (var j=0; j < d.releaseDates.length; j++) {
@@ -284,6 +301,10 @@ drawReleaseChart2 = function(svg, scope) {
    }
    timeScale.domain([d3.min(dates) , d3.max(dates)]);
    timeScale.range([hMargin, width - 2*hMargin]);
+
+   //
+   // Draw the release groups
+   //
 
    //
    // Draw feature bands
