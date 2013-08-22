@@ -295,6 +295,21 @@ drawReleaseChart2 = function(svg, scope) {
       .call(band, timeScale);
 
    //
+   // Draw release gridlilnes
+   //
+   svg.selectAll("line.release-gridline")
+      .data(releaseDates)
+      .enter()
+      .append("line").attr("class", "release-gridline")
+      .attr("x1", function(d) {return timeScale(d)})
+      .attr("x2", function(d) {return timeScale(d)})
+      .attr("y1", 0)
+      .attr("y2", height)
+      .style("stroke-width", 1)
+      .style("stroke", "gray");
+
+
+   //
    // Draw x axis
    //
    var xAxis = d3.svg.axis()
