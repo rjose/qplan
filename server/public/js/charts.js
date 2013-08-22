@@ -60,13 +60,13 @@ chartsModule.controller("LiveViewCtrl",
             options: {},
             dataset: [
                {group: 'Phone',
-               releaseDates: ["Aug 30, 2013", "Sep 30, 2013"],
+               releaseDates: ["Aug 30, 2013"],
                features: [
                   {name: "Feature1", expected: "Aug 15, 2013", target: "Aug 30, 2013"},
                   {name: "Feature2", expected: "Aug 25, 2013", target: "Aug 30, 2013"}
                ]},
                {group: 'Tablet',
-               releaseDates: ["Oct 15, 2013"],
+               releaseDates: ["Oct 15, 2013", "Nov 15, 2013"],
                features: [
                   {name: "Tab1", expected: "Sep 15, 2013", target: "Oct 15, 2013"}
                ]}
@@ -253,8 +253,9 @@ drawReleaseChart2 = function(svg, scope) {
    var itemSep = 10;
    var groupSep = 30;
    var topMargin = 20;
-   var hMargin = 20;
+   var hMargin = 15;
    var features = [];
+   var releaseDates = [];
 
    //
    // Gather data together:
@@ -268,8 +269,9 @@ drawReleaseChart2 = function(svg, scope) {
 
       // Collect release dates
       for (var j=0; j < d.releaseDates.length; j++) {
-         var date = d.releaseDates[j];
-         dates.push(new Date(date));
+         var date = new Date(d.releaseDates[j]);
+         dates.push(date);
+         releaseDates.push(date)
       }
 
       // Collect feature dates
@@ -281,7 +283,7 @@ drawReleaseChart2 = function(svg, scope) {
       }
    }
    timeScale.domain([d3.min(dates) , d3.max(dates)]);
-   timeScale.range([hMargin, width - hMargin]);
+   timeScale.range([hMargin, width - 2*hMargin]);
 
    //
    // Draw feature bands
@@ -291,6 +293,19 @@ drawReleaseChart2 = function(svg, scope) {
       .enter()
       .append("g").attr("class", "band")
       .call(band, timeScale);
+
+   //
+   // Draw x axis
+   //
+   var xAxis = d3.svg.axis()
+      .scale(timeScale);
+   xAxis.tickValues(releaseDates);
+   xAxis.tickFormat(d3.time.format("%b %e"));
+
+   svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + (height - 50) + ")")
+      .call(xAxis);
 }
 
 
