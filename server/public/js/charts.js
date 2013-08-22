@@ -9,7 +9,6 @@ var chartsModule = angular.module("charts", []);
 //
 var drawQuadChart = null;
 var drawReleaseChart = null;
-var drawReleaseChart2 = null;
 var yValue = null;
 var setChartWidth = null;
 var setChartHeight = null;
@@ -21,11 +20,12 @@ var setChartHeight = null;
 chartsModule.controller("LiveViewCtrl",
    ['$scope',
    function($scope) {
-      $scope.type = "chart";
-      $scope.title = "Chart Demo";
+      $scope.type = "";
+      $scope.title = "";
       $scope.aux_title = "";
       $scope.chart = {};
       $scope.raw = "";
+      $scope.fields = [];
 
       //
       // Set up websocket
@@ -50,26 +50,13 @@ chartsModule.controller("LiveViewCtrl",
             $scope.chart = message.data;
             $scope.raw = '';
             $scope.aux_title = '';
+            $scope.fields = [];
          }
          else {
             console.log("Got " + data.command);
          }
          $scope.$apply();
       };
-
-      $scope.demoReleaseChart = function() {
-         $scope.chart = {
-            type: 'releasechart',
-            dataset: {
-               releaseDates: ["Aug 30, 2013", "Oct 15, 2013", "Nov 15, 2013"],
-               features: [
-                  {name: "Feature1", expected: "Aug 15, 2013", target: "Aug 30, 2013"},
-                  {name: "Feature2", expected: "Aug 25, 2013", target: "Aug 30, 2013"},
-                  {name: "Tab1", expected: "Sep 15, 2013", target: "Oct 15, 2013"}
-               ]
-            }
-         };
-      }
 
       // End function
    }]
@@ -86,7 +73,6 @@ chartsModule.directive("chart", function() {
          var el = element[0];
          var width = el.offsetWidth;
          var height = el.offsetHeight;
-         console.log(el);
 
          scope.$watch('chart', function() {
             if (!scope.chart) return;
@@ -103,13 +89,12 @@ chartsModule.directive("chart", function() {
                drawQuadChart(svg, scope);
             }
             else if (scope.chart.type == 'releasechart') {
-               drawReleaseChart2(svg, scope);
+               drawReleaseChart(svg, scope);
             }
 
          });
       }
-   }
-});
+   } });
 
 
 //==============================================================================
@@ -130,7 +115,7 @@ setChartHeight = function(svg, h) {
 // Computes y value for bands in releasechart
 //
 yValue = function(i) {
-   var topMargin = 25;
+   var topMargin = 35;
    var itemSep = 30;
    return topMargin + i * itemSep
 }
@@ -147,9 +132,12 @@ drawQuadChart = function(svg, scope) {
    var radius = 6;
    var hasExtPrereqColor = "orange";
    var isExtPrereqColor = "#d62728";
-   var width = svg.attr("width");
-   var height = svg.attr("height");
+   var width = 500;
+   var height = 500;
    var dataset = chart.dataset;
+
+   setChartWidth(svg, width);
+   setChartHeight(svg, height);
 
    var maxEffort = d3.max(dataset, function(d) {return d.effort});
    var maxValue = d3.max(dataset, function(d) {return d.value});
@@ -234,7 +222,6 @@ drawQuadChart = function(svg, scope) {
 function band(selection, timeScale) {
    var radius = 5;
 
-
    // Add main line
    selection.append("line")
       .attr("x1", function(d) {return timeScale(new Date(d.expected))})
@@ -261,14 +248,17 @@ function band(selection, timeScale) {
    // Add label
    var margin = 8;
    selection.append("text")
-      .attr("x", function(d) {return -radius + timeScale(new Date(d.expected))})
+      .attr("x", function(d) {return timeScale(new Date(d.expected))})
       .attr("y", function(d, i) {return yValue(i) - margin})
       .attr("font-size", "11px")
       .text(function(d) {return d.name});
 }
 
 
-drawReleaseChart2 = function(svg, scope) {
+//------------------------------------------------------------------------------
+// Draws release chart in svg element.
+//
+drawReleaseChart = function(svg, scope) {
    var chart = scope.chart;
    if (!chart.type) return;
 
@@ -288,8 +278,7 @@ drawReleaseChart2 = function(svg, scope) {
    setChartHeight(svg, height);
    setChartWidth(svg, width);
 
-   //
-   // Gather data together:
+   // Pull data:
    //
    //    - Collect dates to set up time scale
    //    - Collect features to render
@@ -312,22 +301,9 @@ drawReleaseChart2 = function(svg, scope) {
    timeScale.domain([d3.min(dates) , d3.max(dates)]);
    timeScale.range([hMargin, width - 2*hMargin]);
 
-   //
-   // Draw the release groups
-   //
 
-   //
-   // Draw feature bands
-   //
-   svg.selectAll("g.band")
-      .data(features)
-      .enter()
-      .append("g").attr("class", "band")
-      .call(band, timeScale);
 
-   //
    // Draw release gridlilnes
-   //
    svg.selectAll("line.release-gridline")
       .data(releaseDates)
       .enter()
@@ -335,14 +311,18 @@ drawReleaseChart2 = function(svg, scope) {
       .attr("x1", function(d) {return timeScale(d)})
       .attr("x2", function(d) {return timeScale(d)})
       .attr("y1", 0)
-      .attr("y2", height)
+      .attr("y2", height - axisHeight)
       .style("stroke-width", 1)
       .style("stroke", "gray");
 
+   // Draw feature bands
+   svg.selectAll("g.band")
+      .data(features)
+      .enter()
+      .append("g").attr("class", "band")
+      .call(band, timeScale);
 
-   //
    // Draw x axis
-   //
    var xAxis = d3.svg.axis()
       .scale(timeScale)
       .tickValues(releaseDates)
@@ -350,12 +330,10 @@ drawReleaseChart2 = function(svg, scope) {
 
    svg.append("g")
       .attr("class", "x axis")
-      .attr("transform", "translate(0," + (height - 30) + ")")
+      .attr("transform", "translate(0," + (height - axisHeight) + ")")
       .call(xAxis);
 
-   //
    // Draw frame around chart
-   //
    svg.append("rect")
       .attr("x", 0)
       .attr("y", 0)
@@ -364,88 +342,4 @@ drawReleaseChart2 = function(svg, scope) {
       .style("fill", "none")
       .style("stroke-width", 3)
       .style("stroke", "black");
-}
-
-
-//------------------------------------------------------------------------------
-// Draws release chart in svg element.
-//
-drawReleaseChart = function(svg, scope) {
-   var chart = scope.chart;
-   if (!chart.type) return;
-
-   var timeScale = d3.time.scale();
-
-   var width = svg.attr("width");
-   var height = svg.attr("height");
-   var topMargin = 25;
-   var leftMargin = 25;
-   var itemMargin = 15;
-   var itemHeight = 20;
-   var groupMargin = 25;
-   var dates = [];
-   var curY = topMargin;
-   var groupYValues = {};
-   var releaseBands = [];
-
-   //
-   // Collect dates from each group so we can set up the timescale
-   //
-   // Also compute y values for each feature as well as for the release bands.
-   chart.dataset.forEach(function(d) {
-      var group = d.group;
-      groupYValues[group] = {
-         featureYValues: [],
-         bandYValues: [curY]
-      };
-
-      d.featureDates.forEach(function(feature) {
-         dates.push(new Date(feature.expected));
-         dates.push(new Date(feature.target));
-         groupYValues[group].featureYValues.push(curY);
-         curY += (itemHeight + itemMargin);
-      });
-      groupYValues[group].bandYValues.push(curY);
-      curY += groupMargin;
-
-      d.releaseBands.forEach(function(band) {
-         var bandStart = new Date(band[0]);
-         var bandEnd = new Date(band[1]);
-         dates.push(bandStart);
-         dates.push(bandEnd);
-
-         // Store release band data
-         releaseBands.push({
-            dates: [bandStart, bandEnd],
-            yVals: groupYValues[group].bandYValues
-         });
-      });
-
-   });
-   timeScale.domain([d3.min(dates) , d3.max(dates)]);
-   timeScale.range([0, width]);
-
-
-   // Add release bands
-   svg.selectAll("rect.band")
-      .data(releaseBands)
-      .enter()
-      .append("rect")
-      .attr("class", "band")
-      .attr("x", function(d) {return timeScale(d.dates[0])})
-      .attr("y", function(d) {return d.yVals[0]})
-      .attr("width", function(d) {
-         return timeScale(d.dates[1]) - timeScale(d.dates[0]);
-      })
-      .attr("height", function(d) {
-         return d.yVals[1] - d.yVals[0];
-      })
-      .style("fill", "blue");
-
-   // TODO: Add group label
-
-   // TODO: Add frame
-   // TODO: Add title
-   // TODO: Add date axis ticks
-
 }
