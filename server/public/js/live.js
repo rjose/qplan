@@ -87,6 +87,9 @@ chartsModule.directive("chart", function() {
             else if (scope.chart.type == 'piechart') {
                charts.piechart.draw(svg, scope);
             }
+            else if (scope.chart.type == 'shortagechart') {
+               charts.shortagechart.draw(svg, scope);
+            }
 
          });
       }
