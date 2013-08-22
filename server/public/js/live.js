@@ -88,6 +88,7 @@ chartsModule.directive("chart", function() {
                drawQuadChart(svg, scope);
             }
             else if (scope.chart.type == 'releasechart') {
+               charts.releasechart.draw(svg, scope);
                drawReleaseChart(svg, scope);
             }
             else if (scope.chart.type == 'piechart') {

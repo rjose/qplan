@@ -1,4 +1,4 @@
-if (!typeof(charts.piechart) == 'undefined') return;
+if (typeof(charts.piechart) != 'undefined') return;
 
 charts.piechart = {
 
