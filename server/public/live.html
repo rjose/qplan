@@ -1,39 +1,35 @@
 <!doctype html>
 
-<html>
+<html ng-app="live">
 <head>
    <meta charset="UTF-8">
-   <title>QPlan Live</title>
+   <title>Charts Example</title>
    <script src="./js/jquery.min.js"></script>
+   <script src="./js/angular.min.js"></script>
    <script src="./js/d3.v3.min.js"></script>
    <script src="./js/live.js"></script>
+   <link rel="stylesheet" href="./css/charts.css">
 </head>
 
 <body>
-   <div id='output'>
-      <pre id='raw_output'></pre>
+
+   <div ng-controller="LiveViewCtrl">
+      <div id="main-content">
+         <h2>{{ title }}</h2>
+         <div chart id="chart" class="visible-{{type == 'chart' }}"></div>
+         <pre class="visible-{{type == 'raw' }}">{{ raw }}</pre>
+      </div>
+
+      <div id="aux-content">
+         <h3>{{ aux_title }}</h3>
+         <ul>
+            <li ng-repeat='field in fields'>{{ field.key }}: {{ field.value }}</li>
+         </ul>
+      </div>
    </div>
 
-      <script>
-         window.onload = function() {
-            websocket = new WebSocket("ws://" + document.location.hostname + ":8888");
-            websocket.onopen = function(event) {
-               console.log("Open!");
-            };
-            websocket.onclose = function(event) {
-               console.log("Close!");
-            };
-            websocket.onmessage = function(event) {
-               var data = JSON.parse(event.data);
-               Live.render_data(data);
-            };
-            websocket.onerror = function(event) {
-               console.log("Ugh.");
-               console.dir(event);
-            }
-         }
 
-      </script>
+
 </body>
 
 </html>
