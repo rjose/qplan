@@ -1,5 +1,6 @@
 if (typeof(charts.piechart) != 'undefined') return;
 
+
 charts.piechart = {
 
    //------------------------------------------------------------------------------
@@ -54,7 +55,7 @@ charts.piechart = {
       .attr("text-anchor", "middle")
          .attr("fill", "white")
          .attr("font-size", labelSize + "px")
-         .attr("font-family", FONT_FAMILY)
+         .attr("font-family", charts.FONT_FAMILY)
          .text(function(d) {
             return d.data.label;
          });
