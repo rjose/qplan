@@ -30,6 +30,7 @@ chartsModule.controller("LiveViewCtrl",
             $scope.raw = message.data;
             $scope.chart = {};
             $scope.aux_title = '';
+            $scope.fields = [];
          }
          else if (message.command == 'chart') {
             console.log(message);
