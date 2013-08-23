@@ -1,4 +1,5 @@
 qplan-v5.html
 _*.txt
 *.swp
+*.pyc
 */obj/

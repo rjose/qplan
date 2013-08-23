@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+
+import argparse
+import http.client
+import sys
+
+# Read commandline arguments
+parser = argparse.ArgumentParser(description='Broadcasts data via server')
+parser.add_argument('--type')
+args = parser.parse_args()
+
+# Format data as JSON
+if args.type == 'piechart':
+        import bcast.piechart as piechart
+        result = piechart.format_text(sys.stdin)
+else:
+        sys.stderr.write('Unknown type: %s\n' % args.type)
+        sys.exit(1)
+
+
+# Post data for broadcast
+# TODO: Read host/port from config file
+h = http.client.HTTPConnection('localhost:8888')
+h.request("POST","/broadcast", result, {"Content-type": "application/json"})
