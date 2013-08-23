@@ -11,8 +11,11 @@ args = parser.parse_args()
 
 # Format data as JSON
 if args.type == 'piechart':
-        import bcast.piechart as piechart
-        result = piechart.format_text(sys.stdin)
+        import bcast.piechart
+        result = bcast.piechart.format_text(sys.stdin)
+elif args.type == 'raw':
+        import bcast.raw
+        result = bcast.raw.format_text(sys.stdin)
 else:
         sys.stderr.write('Unknown type: %s\n' % args.type)
         sys.exit(1)
