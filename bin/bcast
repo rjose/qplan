@@ -23,6 +23,9 @@ elif args.type == 'shortagechart':
 elif args.type == 'quadchart':
     import bcast.quadchart
     result = bcast.quadchart.parse(sys.stdin)
+elif args.type == 'releasechart':
+    import bcast.releasechart
+    result = bcast.releasechart.parse(sys.stdin)
 else:
     sys.stderr.write('Unknown type: %s\n' % args.type)
     sys.exit(1)
