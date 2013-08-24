@@ -31,7 +31,7 @@ def parse(f):
 
     result = {
             'command': 'chart',
-            'title': sections['title'].rstrip(),
+            'title': sections['title'],
             'data': {
                 'type': 'shortagechart',
                 'dataset': dataset

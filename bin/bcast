@@ -20,6 +20,9 @@ elif args.type == 'raw':
 elif args.type == 'shortagechart':
     import bcast.shortagechart
     result = bcast.shortagechart.parse(sys.stdin)
+elif args.type == 'quadchart':
+    import bcast.quadchart
+    result = bcast.quadchart.parse(sys.stdin)
 else:
     sys.stderr.write('Unknown type: %s\n' % args.type)
     sys.exit(1)
