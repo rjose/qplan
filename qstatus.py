@@ -1,10 +1,10 @@
 #!/usr/bin/env python3.3
 
-import utils.sectionize
+import argparse
 import sys
 import re
+import utils.sectionize
 
-# TODO: Add flags to get status and backlog candidates
 
 sections = utils.sectionize.sectionize(sys.stdin)
 
@@ -129,4 +129,15 @@ def print_backlog():
                 for work_name in out_items:
                         print("\t%s" % workAsString(t, work_name, work))
 
-print_backlog()
+# Read commandline arguments
+parser = argparse.ArgumentParser(description='Generates status and backlog reports')
+parser.add_argument('-s', action='store_true', help='Print status report')
+parser.add_argument('-b', action='store_true', help='Print backlog report')
+args = parser.parse_args()
+
+if args.s:
+        print_quarter_status()
+elif args.b:
+        print_backlog()
+else:
+        parser.print_help()
