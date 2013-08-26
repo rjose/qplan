@@ -22,6 +22,15 @@ sections = source_info.sections()
 def removeNonAscii(s):
         return "".join(filter(lambda x: ord(x) < 128, s))
 
+def removeNewline(s):
+        return "".join(filter(lambda x: x != '\n', s))
+
+def convertNoneToEmpty(s):
+        if s:
+                return s
+        else:
+                return ""
+
 def cat_tables(section):
         print "=====%s" % section
         for p in source_info.items(section):
@@ -31,7 +40,11 @@ def cat_tables(section):
 
                 list_of_lists = worksheet.get_all_values()
                 for row in list_of_lists:
-                        print removeNonAscii('\t'.join(row))
+                        row = [convertNoneToEmpty(f) for f in row]
+                        conditionedLine = '\t'.join(row)
+                        conditionedLine = removeNonAscii(conditionedLine)
+                        conditionedLine = removeNewline(conditionedLine)
+                        print "\t%s" % conditionedLine
         return
 
 # Print out data
