@@ -1,0 +1,67 @@
+QPlan v6
+========
+Rino Jose <@rjose>
+Aug 31, 2013
+
+Overview
+--------
+In v6, we should be working towards a number of things. The first is moving the
+server portions out into link:https://github.com/rjose/catserve[catserve] and
+tightening up the app code to provide "vending machine" views. The second is
+rethinking our pipelines and coding them up in a more consistent way.
+
+.Pipelines
+The source data will ultimately come from a data source like a spreadsheet or
+JIRA. Each team will organize their data differently. The first level of filters
+will be custom for each team (and may need to be updated over time as the source
+data evolves). It's totally appropriate for these scripts to refer to column
+numbers and unpack specific fields. The goal of these frontline filters is to
+transform the data into a known, consistent format.
+
+The next set of filters will be written assuming the data has been conditioned
+properly and is clean. I'm currently thinking these filters should be written in
+Haskell. These filters will be application-specific. They will be able to
+generate raw text reports and input data to vending machine apps.
+
+Implementation
+--------------
+. Separate stacked streams into different types
+. Emit data for different types of vending machine UIs
+. Emit data for different types of live charts
+. Emit different types of raw text reports
+. Use cabal to build haskell app
+. Create unit tests
+
+
+1 - Separate stacked streams into different types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Let's start by just writing a filter that sends stdin to stdout. Done. What
+should I name our main filter? It's going to be app-specific, so I guess qplan?
+OK, so let's create a stacked stream test input. Done. OK, I got something that
+works (it doesn't look too haskell-y yet, but it's a start). Let's check this
+in.
+
+I need to figure out commandline arguments.
+
+
+Thoughts
+--------
+How will the Haskell filters work with ad hoc reports? Not sure. If I wanted to
+show shortage charts by track and then by theme, how would I do it? If I wanted
+a one-off quad chart, what would I use to create the data? I think headers
+should be used in every input stream. The headers define the format of the data.
+I think we should be able to use the same haskell app repeatedly in a pipeline.
+I'll have to see how this works.
+
+For truly ad hoc reports, we should have custom shell scripts in whatever
+language makes the most sense. However, for every language we use, we'll need a
+way to parse the stacked streams.
+
+We shouldn't have any unused data in the haskell input streams. If it's not
+needed, it shouldn't be present. If it's needed in some cases and not in others,
+then we should have different types of stacked streams for each case.
+
+I want Haskell to do the heavy lifting. The vending machine apps should
+essentially have "denormalized" data that's ready for consumption. The app
+should do some level of computation, but it should almost always come from
+upstream.

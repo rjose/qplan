@@ -3,3 +3,6 @@ _*.txt
 *.swp
 *.pyc
 */obj/
+*.o
+*.hi
+haskell_modules/qplan
