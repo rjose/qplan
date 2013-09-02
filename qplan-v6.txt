@@ -36,7 +36,6 @@ Implementation
 . Emit data for different types of vending machine UIs
 . Emit data for different types of live charts
 . Emit different types of raw text reports
-. Create unit tests
 
 
 1 - Separate stacked streams into different types
@@ -64,6 +63,11 @@ can now do this to run tests:
         - cabal test
 
 I moved some files around to create the cabal module. Let's check in.
+
+The next thing I want to do here is add a simple unit test for the stacked
+streams. Done!
+
+The last thing is to add documentation.
 
 Thoughts
 --------

@@ -6,3 +6,4 @@ _*.txt
 *.o
 *.hi
 haskell_modules/qplan
+dist/
