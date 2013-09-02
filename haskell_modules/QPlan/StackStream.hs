@@ -8,33 +8,73 @@
 -- Stability   :  experimental
 -- Portability :  portable
 --
--- Provides ability to work with "stacked streams" to separate them into
+-- Provides ability to work with stacked streams to separate them into
 -- component streams or to create stacked streams from different sources.
 --
 -----------------------------------------------------------------------------
 
+-- =============================================================================
+-- Module definition
+--
 module StackStream (
         unstack,
         Stream(..),
         Header(..)
 ) where
 
+
+-- =============================================================================
+-- Module imports
+--
 import Data.List
 import Data.Maybe
 import Control.Monad.State
 import Control.Monad
 
+
+-- =============================================================================
+-- Algebraic data types
+--
+
+--------------------------------------------------------------------------------
 -- | Provides description of stream data and how to interpret it.
+--
 data Header
         = Header String
         deriving (Show)
 
+--------------------------------------------------------------------------------
 -- | Component of stacked stream.
+--
 data Stream
         = Stream Header [String]
         | EmptyStream
         deriving (Show)
 
+
+
+-- =============================================================================
+-- Public API
+--
+
+--------------------------------------------------------------------------------
+-- | Translates a stacked stream into its components.
+--
+unstack :: [String] -> [Stream]
+unstack [] = []
+unstack ss = stream:unstack rest
+        where
+                (stream, rest) = getStream ss
+
+
+
+-- =============================================================================
+-- Internal functions
+--
+
+--------------------------------------------------------------------------------
+-- Converts string to Header (if possible).
+--
 fromString :: String -> Maybe Header
 fromString s
         | "=====" `isPrefixOf` s = Just $ Header $ drop prefixLen s
@@ -42,9 +82,10 @@ fromString s
                 where prefixLen = 5
 
 
-nextState :: State [String] Stream
-nextState = state $ getStream
-
+--------------------------------------------------------------------------------
+-- Converts list of strings into a Stream, returning whatever strings were not
+-- processed.
+--
 getStream :: [String] -> (Stream, [String])
 getStream (s:ss) = (stream, rest)
         where
@@ -53,9 +94,13 @@ getStream (s:ss) = (stream, rest)
                 stream = Stream header $ map tail sdata
 getStream [] = (EmptyStream, [])
 
--- | Translates a stacked stream into its components.
-unstack :: [String] -> [Stream]
-unstack [] = []
-unstack ss = stream:unstack rest
-        where
-                (stream, rest) = getStream ss
+
+--------------------------------------------------------------------------------
+-- Provides interface to State monad.
+--
+--      NOTE: This is essentially unused.
+--
+nextState :: State [String] Stream
+nextState = state $ getStream
+
+

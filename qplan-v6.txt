@@ -32,7 +32,7 @@ We should support cases like this:
 
 Implementation
 --------------
-. Separate stacked streams into different types
+. [X] Separate stacked streams into different types
 . Emit data for different types of vending machine UIs
 . Emit data for different types of live charts
 . Emit different types of raw text reports
@@ -67,7 +67,7 @@ I moved some files around to create the cabal module. Let's check in.
 The next thing I want to do here is add a simple unit test for the stacked
 streams. Done!
 
-The last thing is to add documentation.
+The last thing is to add documentation. Done.
 
 Thoughts
 --------
