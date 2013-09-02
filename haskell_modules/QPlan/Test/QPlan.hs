@@ -22,6 +22,13 @@ test_unstack = do
                 headers = map streamHeader streams
 
 
+-- Support
+
+-- Returns header string for a stream
+streamHeader :: Stream -> String
+streamHeader (Stream (Header h) _) = h
+streamHeader _ = ""
+
 
 -- DATA
 

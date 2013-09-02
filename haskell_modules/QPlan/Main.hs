@@ -9,28 +9,18 @@
 -- Portability :  portable
 --
 -- Provides ability to consume structured data from stdin and generate text
--- reports, data for vending machine apps, or data for broadcast.
+-- reports, data for vending machine apps, or data for broadcast for quarterly
+-- planning applications.
 --
 -----------------------------------------------------------------------------
+
+module Main (main) where
  
 import System.Environment
 import System.Exit
 import Data.Maybe
 import System.Console.GetOpt
-import StackStream
-
-
-input="=====title\n" ++
-      "\tShortage Chart (with shortage)\n" ++
-      "=====demand\n" ++
-      "\tTrack 1\t20\n" ++
-      "\tTrack 2\t35\n" ++
-      "=====shortage\n" ++
-      "\tApps\t5\n" ++
-      "\tNative\t3\n" ++
-      "\tQA\t1"
-
-linput = lines input
+import StackStream (unstack)
 
 data Flag
         = Chart String
@@ -49,6 +39,7 @@ chart :: String -> Flag
 chart = Chart
 
 
+-- | Parses commandline arguments and filters data from stdin to stdout.
 main = getArgs >>= run
 
 run :: [String] -> IO ()
