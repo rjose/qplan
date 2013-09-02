@@ -1,6 +1,23 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  QPlan 
+-- Copyright   :  (c) Rino Jose 2013
+-- License     :  BSD-style
+-- 
+-- Maintainer  :  rjose@ejorp.com
+-- Stability   :  experimental
+-- Portability :  portable
+--
+-- Provides ability to consume structured data from stdin and generate text
+-- reports, data for vending machine apps, or data for broadcast.
+--
+-----------------------------------------------------------------------------
+ 
+import System.Environment
+import System.Exit
 import Data.Maybe
+import System.Console.GetOpt
 
--- TODO: Handle commandline args
 
 input="=====title\n" ++
       "\tShortage Chart (with shortage)\n" ++
@@ -14,7 +31,37 @@ input="=====title\n" ++
 
 linput = lines input
 
-main = interact unstack
+data Flag
+        = Chart String
+        | Raw
+        | Data
+          deriving (Eq, Show)
+
+options :: [OptDescr Flag]
+options = 
+        [ Option ['c'] ["chart"] (ReqArg chart "CHART") "construct chart data",
+          Option ['r'] ["raw"] (NoArg Raw) "generate raw output",
+          Option ['d'] ["data"] (NoArg Data) "show data"
+          ] 
+
+chart :: String -> Flag
+chart = Chart
+
+
+main = getArgs >>= run
+
+run :: [String] -> IO ()
+run args = do
+                contents <- getContents
+                putStr $ computeResult flags contents
+        where
+                (flags, _, _) = getOpt Permute options args
+
+computeResult :: [Flag] -> String -> String
+computeResult flags contents
+        | Raw `elem` flags = contents
+        | Data `elem` flags = unstack contents
+        | otherwise = "TODO: Handle nothing\n" 
 
 data Stream = Start | Stream String [String]
         deriving Show

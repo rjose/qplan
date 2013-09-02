@@ -23,6 +23,13 @@ properly and is clean. I'm currently thinking these filters should be written in
 Haskell. These filters will be application-specific. They will be able to
 generate raw text reports and input data to vending machine apps.
 
+We should support cases like this:
+
+        - cat one-off chart with a chart-type header. The default action might
+          be to emit JSON.
+        - cat un-headered chart data but specifying flag
+
+
 Implementation
 --------------
 . Separate stacked streams into different types
@@ -39,9 +46,15 @@ Let's start by just writing a filter that sends stdin to stdout. Done. What
 should I name our main filter? It's going to be app-specific, so I guess qplan?
 OK, so let's create a stacked stream test input. Done. OK, I got something that
 works (it doesn't look too haskell-y yet, but it's a start). Let's check this
-in.
+in. OK, let's follow along with
+link:http://www.haskell.org/haskellwiki/Tutorials/Programming_Haskell/Argument_handling[
+argument handling] to work with flags. Actually, the source code for the
+link:http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-Console-GetOpt.html[GetOpt
+module] is very well-written, so I'm following along with that. All I want to do
+is parse an option. Let's see if we can do this.
 
-I need to figure out commandline arguments.
+
+
 
 
 Thoughts
@@ -65,3 +78,7 @@ I want Haskell to do the heavy lifting. The vending machine apps should
 essentially have "denormalized" data that's ready for consumption. The app
 should do some level of computation, but it should almost always come from
 upstream.
+
+Action Items
+------------
+- Comment code according to Haddock style
