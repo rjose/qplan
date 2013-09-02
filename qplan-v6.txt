@@ -36,7 +36,6 @@ Implementation
 . Emit data for different types of vending machine UIs
 . Emit data for different types of live charts
 . Emit different types of raw text reports
-. Use cabal to build haskell app
 . Create unit tests
 
 
@@ -51,11 +50,20 @@ link:http://www.haskell.org/haskellwiki/Tutorials/Programming_Haskell/Argument_h
 argument handling] to work with flags. Actually, the source code for the
 link:http://www.haskell.org/ghc/docs/latest/html/libraries/base/System-Console-GetOpt.html[GetOpt
 module] is very well-written, so I'm following along with that. All I want to do
-is parse an option. Let's see if we can do this.
+is parse an option. Let's see if we can do this. Done!
 
+Let's create a module that can split out stacked streams (and nested stack
+streams). We'll do some basic testing and then hook it back into the main
+program.
 
+I think I should set up cabal first so it's easier to run the tests. Alright, I
+can now do this to run tests:
 
+        - cabal configure --enable-tests
+        - cabal build
+        - cabal test
 
+I moved some files around to create the cabal module. Let's check in.
 
 Thoughts
 --------

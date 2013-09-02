@@ -17,6 +17,7 @@ import System.Environment
 import System.Exit
 import Data.Maybe
 import System.Console.GetOpt
+import StackStream
 
 
 input="=====title\n" ++
@@ -60,7 +61,7 @@ run args = do
 computeResult :: [Flag] -> String -> String
 computeResult flags contents
         | Raw `elem` flags = contents
-        | Data `elem` flags = unstack contents
+        | Data `elem` flags = unstack' contents
         | otherwise = "TODO: Handle nothing\n" 
 
 data Stream = Start | Stream String [String]
@@ -90,8 +91,8 @@ getStreams ss = stream:rest
                 (stream, rest_strs) = getStream ss
                 rest = getStreams rest_strs
 
-unstack :: String -> String
-unstack input = unlines shortage_data
+unstack' :: String -> String
+unstack' input = unlines shortage_data
         where
                 streams = getStreams . lines $ input
                 (Stream _ shortage_data) = streams !! 2
