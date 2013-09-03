@@ -2,25 +2,15 @@ module Work () where
 
 
 import Data.List.Split
-import SkillAmount
+import qualified SkillAmount as SkillAmount
 
 type Id = String
-
-data Estimate
-        = Estimate
-        deriving (Show)
-
-data Tag
-         = Tag
-         deriving (Show, Eq)
+type Estimate = SkillAmount.SkillAmount
+type Value = Float
 
 data Triage
         = P1 | P1_5 | P2 | P2_5 | P3
         deriving (Show, Eq, Ord)
-
-data Value
-        = Value
-        deriving (Show)
 
 data Work
         = Work { id :: Id,
@@ -32,8 +22,36 @@ data Work
                  value :: Value,
                  prereqs :: [Id]
                }
+        | WorkNone
                deriving (Show)
 
-workLine1 = "ABC123\tAn item of work\tApps:S,Native:M,QA:3S\t1.5\tTrack1\tMobile\t8\tB21,C23"
-workLineList = splitOn "\t" workLine1
-est_string = workLineList !! 2
+parseTriage :: String -> Triage
+parseTriage s = valTriage (read s :: Float)
+
+valTriage :: Float -> Triage
+valTriage val
+        | val <= 1   = P1
+        | val <= 1.5 = P1_5
+        | val <= 2   = P2
+        | val <= 2.5 = P2_5
+        | otherwise  = P3
+
+fromString :: String -> Work
+fromString s = Work id name estimate triage track team value prereqs
+        where
+                vals = splitOn "\t" s
+                id = vals !! 0
+                name = vals !! 1
+                estimate_str = vals !! 2
+                triage_str = vals !! 3
+                track = vals !! 4
+                team = vals !! 5
+                value = read $ vals !! 6
+                prereqs = splitOn "," $ vals !! 7
+                estimate = SkillAmount.fromVectorString estimate_str
+                triage = parseTriage triage_str
+
+
+-- DATA
+workLine = "ABC123\tAn item of work\tApps:S,Native:M,QA:3S\t1.5\tTrack1\tMobile\t8\tB21,C23"
+work = fromString workLine
