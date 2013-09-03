@@ -27,4 +27,4 @@ Test-Suite test-qplan
   Hs-Source-Dirs:    Test, .
   Main-Is:           QPlan.hs
   build-depends:     base, mtl, HUnit >= 1.2.5,
-                     test-framework, test-framework-hunit
+                     test-framework, test-framework-hunit, containers, split

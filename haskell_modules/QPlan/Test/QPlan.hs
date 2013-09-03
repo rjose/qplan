@@ -3,11 +3,13 @@ import Test.Framework
 import Test.Framework.Providers.HUnit
 import Test.HUnit
 import StackStream
+import Test.TestSkillAmount
 
 main :: IO ()
 main = defaultMainWithOpts
         [ testCase "rev" testRev,
-          testCase "unstack" test_unstack
+          testCase "unstack" test_unstack,
+          testCase "TestSkillAmount" testSkillAmount
         ] mempty
 
 testRev :: Assertion

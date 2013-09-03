@@ -128,12 +128,3 @@ amount s = factor * amount unit
                len = length s
                (factor_str, unit) = splitAt (len - 1) s
                factor = read factor_str :: Float
-
-
--- DATA
--- TODO: Move this to a test file
-est_string = "Apps:S,Native:M,QA:3S"
-est_string1 = "Apps:S"
-est_string2 = "Apps:2S"
-
-v1 = fromVectorString est_string
