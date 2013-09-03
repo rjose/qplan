@@ -33,7 +33,7 @@ We should support cases like this:
 Implementation
 --------------
 . [X] Separate stacked streams into different types
-. Emit data for different types of vending machine UIs
+. Emit data for first vending machine app
 . Emit data for different types of live charts
 . Emit different types of raw text reports
 
@@ -68,6 +68,39 @@ The next thing I want to do here is add a simple unit test for the stacked
 streams. Done!
 
 The last thing is to add documentation. Done.
+
+
+2 - Emit data for first vending machine app
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+For this, we need stacked streams for Work and Staff. The columns for Work are
+id, name, estimate, triage, and tags. The columns for Staff are id, name,
+skills, and tags.
+
+Within Haskell, we should be able to map a Work type constructor over the rows.
+Once we have Work and Staff items, what can we do? We should do the
+precomputation so lua doesn't need to. We should provide data to the app so that
+we can totally shrink the handle_work_req function in web router. Here are some
+things we should compute:
+
+        - Get all tracks
+        - Staff by track (along with available bandwidth)
+        - Staff by skill
+        - Work by skill
+        - Work by track (along with manpower estimates)
+
+Maybe we should have a generic dictionary for all of the work and staff and then
+have tables that group by track, skill, triage. Maybe I could work backwards
+from a new app and figure out what data I'd need to implement the same UI.
+
+What part of this am I nervous about? I guess the construction of the new types.
+Let's give this a try. I started out with Work. Before we go too much further,
+let's create an Estimate module. I'll add a couple of tests to it and then
+return. One thing that came up before is estimates vs skill supply. Is there a
+generic word for both of these? Maybe SkillSize, SkillQuantity, SkillAmount? I
+like SkillAmount the best. Let's go with this. OK, got something that can parse
+strings. Let's see if we can define addition over SkillAmounts. Hmmm. This
+doesn't feel correct. I think I may need to rethink this.
+
 
 Thoughts
 --------
