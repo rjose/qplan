@@ -1,2 +1,0 @@
-#test1_C_FILES += ../ws.c ../base64.c ./test_util.c
-#ADDITIONAL_TOOL_LIBS = -lssl -lcrypto -lm

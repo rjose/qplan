@@ -1,6 +1,10 @@
 qplan
 =====
 
+To start the web UI, do
+
+   catserve -r=/home/rjose/products/qplan/server/ -p=8888
+
 This is how you get work and staff from a qplan server:
 
    curl localhost:8888/app/text/work
