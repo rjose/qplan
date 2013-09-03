@@ -28,3 +28,24 @@ This shows how to use two streams to generate data for net_supply:
 
 
 Need to show how to use gcat to pull spreadsheet data
+
+This is used to get status data for project status and backlog reports:
+cat source2.ini | gcat.py > _status_data.txt. The format of source2.ini is:
+
+        [Work]
+        w1 = <worksheet key>:<spreadsheet index>
+
+        [Status]
+        s1 = <worksheet key>:<spreadsheet index>
+
+This is how to generate a status report:
+
+        cat _status_data.txt | sed '/s/Soprano/Tenor/g' | qstatus.py -s
+
+This is how to generate a backlog report:
+
+        cat _status_data.txt | sed '/s/Soprano/Tenor/g' | qstatus.py -b
+
+This is a complete flow:
+
+        cat source2.ini | gcat.py | sed 's/Soprano/Tenor/g' | qstatus.py -s
