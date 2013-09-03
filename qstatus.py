@@ -5,6 +5,7 @@ import sys
 import re
 import utils.sectionize
 
+# TODO: List assumptions for sending into this script
 
 sections = utils.sectionize.sectionize(sys.stdin)
 
@@ -75,6 +76,12 @@ def isOut(w):
                 return True
         return False
 
+def isDone(w):
+        status = w[2]
+        if (re.match("done", status, re.I)):
+                return True
+        return False
+
 def workAsString(track, name, work):
         workData = None
 
@@ -84,7 +91,7 @@ def workAsString(track, name, work):
         if workData:
                 return "#%-3s %s - %s" % (workData[0], workData[1], workData[3])
         else:
-                return "%-3s %s - %s" % ("***", "**", name)
+                return "%-3s %s - %s" % ("NEW", "--", name)
 
 # Prints quarter status
 def print_quarter_status():
@@ -93,7 +100,9 @@ def print_quarter_status():
                 print("== %s" % t)
                 print("\t-- Expected for Quarter")
                 for w in values:
-                        if (isExpected(w)):
+                        if (isDone(w)):
+                                print("\tDONE\t%s" % workAsString(w[0], w[1], work))
+                        elif (isExpected(w)):
                                 print("\t\t%s" % workAsString(w[0], w[1], work))
         
                 print("\n\t-- At Risk")
