@@ -19,7 +19,7 @@ cabal-version:       >=1.8
 executable qplan
   main-is:           Main.hs
   -- other-modules:       
-  build-depends:     base, mtl >= 2.1
+  build-depends:     base, mtl >= 2.1, containers, split
 
 
 Test-Suite test-qplan

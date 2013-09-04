@@ -20,7 +20,10 @@ COLLECTING = "COLLECTING"
 # =====section2
 #   Block of text
 #
-# Each line in the block of text starts with a tab character.
+# NOTE: Each line in the block of input text starts with a tab character.
+#
+# This returns a dictionary of header labels (like section1) to string (the
+# contents of the stream).
 #
 def sectionize(f):
     state = {

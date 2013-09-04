@@ -19,20 +19,26 @@ module Main (main) where
 import System.Environment
 import System.Exit
 import Data.Maybe
+import Data.List
 import System.Console.GetOpt
-import StackStream (unstack)
+import qualified StackStream as StackStream
+import qualified Work as Work
+import SkillAmount
+import Text.Printf
 
 data Flag
         = Chart String
         | Raw
         | Data
+        | Sample
           deriving (Eq, Show)
 
 options :: [OptDescr Flag]
 options = 
         [ Option ['c'] ["chart"] (ReqArg chart "CHART") "construct chart data",
           Option ['r'] ["raw"] (NoArg Raw) "generate raw output",
-          Option ['d'] ["data"] (NoArg Data) "show data"
+          Option ['d'] ["data"] (NoArg Data) "show data",
+          Option ['s'] ["sample"] (NoArg Sample) "sample output"
           ] 
 
 chart :: String -> Flag
@@ -53,6 +59,7 @@ computeResult :: [Flag] -> String -> String
 computeResult flags contents
         | Raw `elem` flags = contents
         | Data `elem` flags = unstack' contents
+        | Sample `elem` flags = sample_filter_work contents
         | otherwise = "TODO: Handle nothing\n" 
 
 data Stream = Start | Stream String [String]
@@ -87,3 +94,19 @@ unstack' input = unlines shortage_data
         where
                 streams = getStreams . lines $ input
                 (Stream _ shortage_data) = streams !! 2
+
+
+-- TODO: Figure out where to move this
+sample_filter_work :: String -> String
+sample_filter_work s = result
+        where
+                streams = StackStream.unstack $ lines s
+                work_stream = find (("Work" ==) . StackStream.header) streams
+                result = if isNothing work_stream then "" else result'
+                StackStream.Stream _ ls = fromJust work_stream
+                work_items = map Work.fromString ls
+                result' = work_filter1 work_items
+
+work_filter1 :: [Work.Work] -> String
+work_filter1 ws = unlines $ map (\w -> printf "%s\t%s"
+        (Work.name w :: String) (show $ Work.estimate w :: String)) ws

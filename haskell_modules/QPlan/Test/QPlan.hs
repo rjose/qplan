@@ -28,7 +28,7 @@ test_unstack = do
 
 -- Returns header string for a stream
 streamHeader :: Stream -> String
-streamHeader (Stream (Header h) _) = h
+streamHeader (Stream h _) = h
 streamHeader _ = ""
 
 

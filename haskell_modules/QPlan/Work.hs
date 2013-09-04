@@ -1,4 +1,7 @@
-module Work () where
+module Work(
+        Work(..),
+        Estimate,
+        fromString) where
 
 
 import Data.List.Split

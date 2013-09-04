@@ -18,8 +18,7 @@
 --
 module StackStream (
         unstack,
-        Stream(..),
-        Header(..)
+        Stream(..)
 ) where
 
 
@@ -36,18 +35,13 @@ import Control.Monad
 -- Algebraic data types
 --
 
---------------------------------------------------------------------------------
--- | Provides description of stream data and how to interpret it.
---
-data Header
-        = Header String
-        deriving (Show)
+type Header = String
 
 --------------------------------------------------------------------------------
 -- | Component of stacked stream.
 --
 data Stream
-        = Stream Header [String]
+        = Stream {header :: Header, content :: [String]}
         | EmptyStream
         deriving (Show)
 
@@ -77,7 +71,7 @@ unstack ss = stream:unstack rest
 --
 fromString :: String -> Maybe Header
 fromString s
-        | "=====" `isPrefixOf` s = Just $ Header $ drop prefixLen s
+        | "=====" `isPrefixOf` s = Just $ drop prefixLen s
         | otherwise = Nothing
                 where prefixLen = 5
 
