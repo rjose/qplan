@@ -4,7 +4,7 @@
 -- Copyright   :  (c) Rino Jose 2013
 -- License     :  BSD-style
 --
--- Maintainer  :  rjose@ejorp.com
+-- Maintainer  :  @rjose
 -- Stability   :  experimental
 -- Portability :  portable
 --
@@ -93,6 +93,7 @@ skillDifference ls rs = difference
 --      The input is like "Native:4M"
 --
 fromString :: String -> SkillAmount
+fromString "" = SkillNone
 fromString s = SkillAmount skillname eststr estval
         where
                 (skillname, _:eststr) = break (== ':') s

@@ -26,6 +26,7 @@ data Work
                deriving (Show)
 
 parseTriage :: String -> Triage
+parseTriage "" = P3
 parseTriage s = valTriage (read s :: Float)
 
 valTriage :: Float -> Triage
@@ -46,12 +47,14 @@ fromString s = Work id name estimate triage track team value prereqs
                 triage_str = vals !! 3
                 track = vals !! 4
                 team = vals !! 5
-                value = read $ vals !! 6
+                value_str = vals !! 6
                 prereqs = splitOn "," $ vals !! 7
+                value = if value_str == "" then 0 else read value_str
                 estimate = SkillAmount.fromVectorString estimate_str
                 triage = parseTriage triage_str
 
 
 -- DATA
-workLine = "ABC123\tAn item of work\tApps:S,Native:M,QA:3S\t1.5\tTrack1\tMobile\t8\tB21,C23"
-work = fromString workLine
+workline = "ABC123\tAn item of work\tApps:S,Native:M,QA:3S\t1.5\tTrack1\tMobile\t8\tB21,C23"
+emptyWorkline = "\t\t\t\t\t\t\t"
+work = fromString workline

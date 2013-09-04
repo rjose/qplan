@@ -4,7 +4,7 @@
 -- Copyright   :  (c) Rino Jose 2013
 -- License     :  BSD-style
 -- 
--- Maintainer  :  rjose@ejorp.com
+-- Maintainer  :  @rjose
 -- Stability   :  experimental
 -- Portability :  portable
 --
