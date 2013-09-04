@@ -25,6 +25,7 @@ import qualified StackStream as StackStream
 import qualified Work as Work
 import SkillAmount
 import Text.Printf
+import Text.JSON
 
 data Flag
         = Chart String
@@ -105,8 +106,25 @@ sample_filter_work s = result
                 result = if isNothing work_stream then "" else result'
                 StackStream.Stream _ ls = fromJust work_stream
                 work_items = map Work.fromString ls
-                result' = work_filter1 work_items
+                result' = work_filter3 work_items
 
 work_filter1 :: [Work.Work] -> String
 work_filter1 ws = unlines $ map (\w -> printf "%s\t%s"
         (Work.name w :: String) (show $ Work.estimate w :: String)) ws
+
+
+work_filter2 :: [Work.Work] -> String
+work_filter2 ws = result
+        where
+                work_array = [toJSObject [("name", Work.name w), ("track", Work.track w)] | w <- ws ]
+                result = encode $ toJSObject [("work", work_array)]
+
+work_filter3 :: [Work.Work] -> String
+work_filter3 ws = result
+        where
+                track_groups = sortBy groupOrder $ groupBy (\l r -> Work.track l == Work.track r) ws
+                groupOrder (gl:gls) (gr:grs) = Work.track gl `compare` Work.track gr
+                groupOrder [] grs = LT
+                groupOrder gls [] = GT
+                tracks = map (\g -> Work.track $ head g) track_groups
+                result = encode tracks
