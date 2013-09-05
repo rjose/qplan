@@ -19,7 +19,7 @@ cabal-version:       >=1.8
 executable qplan
   main-is:           Main.hs
   -- other-modules:       
-  build-depends:     base, mtl >= 2.1, containers, split
+  build-depends:     base, mtl >= 2.1, containers, split, json
 
 
 Test-Suite test-qplan
@@ -27,4 +27,4 @@ Test-Suite test-qplan
   Hs-Source-Dirs:    Test, .
   Main-Is:           QPlan.hs
   build-depends:     base, mtl, HUnit >= 1.2.5,
-                     test-framework, test-framework-hunit, containers, split
+                     test-framework, test-framework-hunit, containers, split, json

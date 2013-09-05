@@ -31,6 +31,8 @@ import System.Exit
 import SkillAmount
 import StackStream
 import Work
+import Text.Printf
+import Text.JSON
 
 import qualified Filters.QPlanApp as QPlanApp
 
