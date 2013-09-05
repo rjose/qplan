@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3.3
 
 import sys
 from utils.sectionize import sectionize
@@ -18,14 +18,15 @@ def get_estimate_string(apps_est, native_est, web_est):
         return result
 
 sections = sectionize(sys.stdin)
+print(sections.keys())
 
 # id, name, estimate, triage, track, team, value, prereqs
-if sections.has_key("Raw Work"):
+if "Raw Work" in sections:
         print("=====Work")
         cur_id = 1
         for line in sections["Raw Work"].split("\n")[1:]:
                 fields = line.split("\t")
-        
+
                 id = str(cur_id); cur_id = cur_id + 1
                 name = fields[4]
                 track = fields[3]

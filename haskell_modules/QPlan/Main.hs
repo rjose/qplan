@@ -27,11 +27,12 @@ import Data.Maybe
 import System.Console.GetOpt
 import System.Environment
 import System.Exit
-import Text.Printf
 
 import SkillAmount
 import StackStream
 import Work
+
+import qualified Filters.QPlanApp as QPlanApp
 
 -- =============================================================================
 -- Data types
@@ -77,8 +78,7 @@ run args = do
                 options =
                   [ Option ['c'] ["chart"] (ReqArg chart "CHART")
                                                      "construct chart data",
-                    Option ['r'] ["raw"] (NoArg Raw) "generate raw output",
-                    Option ['s'] ["sample"] (NoArg Sample) "sample output"
+                    Option ['r'] ["raw"] (NoArg Raw) "generate raw output"
                   ]
                 chart = Chart
 
@@ -89,23 +89,5 @@ run args = do
 computeResult :: [Flag] -> String -> String
 computeResult flags contents
         | Raw `elem` flags = contents
-        | Sample `elem` flags = sample_filter_work contents
-        | otherwise = "TODO: Handle nothing\n" 
-
-
-
--- TODO: Figure out where to move this
-sample_filter_work :: String -> String
-sample_filter_work s = result
-        where
-                streams = unstack $ lines s
-                work_stream = find (("Work" ==) . header) streams
-                result = if isNothing work_stream then "" else result'
-                Stream _ ls = fromJust work_stream
-                work_items :: [Work]
-                work_items = map workFromString ls
-                result' = work_filter1 work_items
-
-work_filter1 :: [Work] -> String
-work_filter1 ws = unlines $ map (\w -> printf "%s\t%s"
-        (name w :: String) (show $ estimate w :: String)) ws
+        | Sample `elem` flags = QPlanApp.filterString contents
+        | otherwise = QPlanApp.filterString contents
