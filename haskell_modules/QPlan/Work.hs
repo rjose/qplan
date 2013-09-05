@@ -1,20 +1,57 @@
-module Work(
-        Work(..),
-        Estimate,
-        workFromString) where
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Work
+-- Copyright   :  (c) Rino Jose 2013
+-- License     :  BSD-style
+--
+-- Maintainer  :  @rjose
+-- Stability   :  experimental
+-- Portability :  portable
+--
+-- Provides parsing of work items.
+--
+-----------------------------------------------------------------------------
 
+-- =============================================================================
+-- Module definition
+--
+module Work(
+        Triage(..),
+        Work(..),
+        workFromString
+) where
+
+
+-- =============================================================================
+-- Module imports
+--
 
 import Data.List.Split
-import qualified SkillAmount as SkillAmount
 
+import SkillAmount
+
+
+-- =============================================================================
+-- Data types
+--
 type Id = String
-type Estimate = SkillAmount.SkillAmount
+type Estimate = SkillAmount
 type Value = Float
 
+--------------------------------------------------------------------------------
+-- Enumerates triage levels
+--
 data Triage
         = P1 | P1_5 | P2 | P2_5 | P3
         deriving (Show, Eq, Ord)
 
+
+--------------------------------------------------------------------------------
+-- | Captures work fields necessary for answering quarterly planning questions.
+--
+--      The ids should be generated outside of this filter. The "WorkNone"
+--      constructor is used to capture an empty work item.
+--
 data Work
         = Work { id :: Id,
                  name :: String,
@@ -28,18 +65,17 @@ data Work
         | WorkNone
                deriving (Show)
 
-parseTriage :: String -> Triage
-parseTriage "" = P3
-parseTriage s = valTriage (read s :: Float)
 
-valTriage :: Float -> Triage
-valTriage val
-        | val <= 1   = P1
-        | val <= 1.5 = P1_5
-        | val <= 2   = P2
-        | val <= 2.5 = P2_5
-        | otherwise  = P3
+-- =============================================================================
+-- Public API
+--
 
+--------------------------------------------------------------------------------
+-- | Constructs a work item from an input string.
+--
+--      The input strings will typically come from data cat'd into the qplan
+--      filter from other filters.
+--
 workFromString :: String -> Work
 workFromString s = Work id name estimate triage track team value prereqs
         where
@@ -53,11 +89,24 @@ workFromString s = Work id name estimate triage track team value prereqs
                 value_str = vals !! 6
                 prereqs = splitOn "," $ vals !! 7
                 value = if value_str == "" then 0 else read value_str
-                estimate = SkillAmount.fromVectorString estimate_str
+                estimate = fromVectorString estimate_str
                 triage = parseTriage triage_str
 
 
--- DATA
-workline = "ABC123\tAn item of work\tApps:S,Native:M,QA:3S\t1.5\tTrack1\tMobile\t8\tB21,C23"
-emptyWorkline = "\t\t\t\t\t\t\t"
-work = workFromString workline
+-- =============================================================================
+-- Internal functions
+--
+
+--------------------------------------------------------------------------------
+-- Converts string into a triage value.
+--
+parseTriage :: String -> Triage
+parseTriage "" = P3
+parseTriage s = valTriage (read s :: Float)
+        where
+                valTriage val
+                        | val <= 1   = P1
+                        | val <= 1.5 = P1_5
+                        | val <= 2   = P2
+                        | val <= 2.5 = P2_5
+                        | otherwise  = P3
