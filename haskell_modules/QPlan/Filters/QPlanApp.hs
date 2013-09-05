@@ -19,7 +19,7 @@ filterString s = result
                 Stream _ ls = fromJust work_stream
                 work_items :: [Work]
                 work_items = map workFromString ls
-                result' = workToString work_items
+                result' = work_filter2 work_items
 
 
 workToString :: [Work] -> String

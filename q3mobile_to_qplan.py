@@ -18,7 +18,6 @@ def get_estimate_string(apps_est, native_est, web_est):
         return result
 
 sections = sectionize(sys.stdin)
-print(sections.keys())
 
 # id, name, estimate, triage, track, team, value, prereqs
 if "Raw Work" in sections:
