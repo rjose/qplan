@@ -1,7 +1,7 @@
 module Work(
         Work(..),
         Estimate,
-        fromString) where
+        workFromString) where
 
 
 import Data.List.Split
@@ -40,8 +40,8 @@ valTriage val
         | val <= 2.5 = P2_5
         | otherwise  = P3
 
-fromString :: String -> Work
-fromString s = Work id name estimate triage track team value prereqs
+workFromString :: String -> Work
+workFromString s = Work id name estimate triage track team value prereqs
         where
                 vals = splitOn "\t" s
                 id = vals !! 0
@@ -60,4 +60,4 @@ fromString s = Work id name estimate triage track team value prereqs
 -- DATA
 workline = "ABC123\tAn item of work\tApps:S,Native:M,QA:3S\t1.5\tTrack1\tMobile\t8\tB21,C23"
 emptyWorkline = "\t\t\t\t\t\t\t"
-work = fromString workline
+work = workFromString workline
