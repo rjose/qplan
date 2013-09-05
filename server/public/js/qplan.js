@@ -14,7 +14,7 @@ function WorkCtrl($scope, $http) {
     $scope.staff_by_skill = {};
 
     $scope.update = function() {
-        $http.get('/app/web/work?triage=' + $scope.triage + "&track=" + $scope.selected_track).then(
+        $http.get('/app/web/work2?triage=' + $scope.triage + "&track=" + $scope.selected_track).then(
             function(res) {
             console.dir(res);
 

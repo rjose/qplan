@@ -9,7 +9,7 @@ testWork = do
        assertEqual "Should parse empty line" P3 (triage empty_work)
 
        where
-                workline = "ABC123\tAn item of work\tApps:S,Native:M,QA:3S\t1.5\tTrack1\tMobile\t8\tB21,C23"
-                emptyWorkline = "\t\t\t\t\t\t\t"
+                workline = "ABC123\t30\tAn item of work\tApps:S,Native:M,QA:3S\t1.5\tTrack1\tMobile\t8\tB21,C23"
+                emptyWorkline = "\t\t\t\t\t\t\t\t"
                 work = workFromString workline
                 empty_work = workFromString emptyWorkline

@@ -22,11 +22,12 @@ sections = sectionize(sys.stdin)
 # id, name, estimate, triage, track, team, value, prereqs
 if "Raw Work" in sections:
         print("=====Work")
-        cur_id = 1
+        cur_rank = 1
         for line in sections["Raw Work"].split("\n")[1:]:
                 fields = line.split("\t")
 
-                id = str(cur_id); cur_id = cur_id + 1
+                rank = str(cur_rank); cur_rank = cur_rank + 1
+                id = rank
                 name = fields[4]
                 track = fields[3]
                 triage = fields[2]
@@ -37,5 +38,5 @@ if "Raw Work" in sections:
                 web_est = fields[10]
                 apps_est = fields[11]
                 estimate = get_estimate_string(apps_est, native_est, web_est)
-                values = [id, name, estimate, triage, track, team, value, prereqs]
+                values = [id, rank, name, estimate, triage, track, team, value, prereqs]
                 print("\t%s" % "\t".join(values))

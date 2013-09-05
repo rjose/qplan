@@ -29,15 +29,113 @@ local format_number
 function AppWebRouter.handle_req(req)
         if req.path_pieces[APP_RESOURCE_INDEX] == 'work' then
                 return handle_work_req(req)
+        elseif req.path_pieces[APP_RESOURCE_INDEX] == 'work2' then
+                return handle_work2_req(req)
         end
 
         return RequestRouter.construct_response(400, "application/json", "")
 end
 
 
+-- DATA
+local g_tracks = {"Alpha", "Beta"}
+
+local all_staff_by_skill = {['Apps'] = {"Alfred", "Baker", "Charlie"}}
+local alpha_staff_by_skill = {['Apps'] = {"Alfred"}}
+local beta_staff_by_skill = {['Apps'] = {"Baker", "Charlie"}}
+local g_staff_by_track_skill = {
+        ['All'] = all_staff_by_skill,
+        ['Alpha'] = alpha_staff_by_skill,
+        ['Beta'] = beta_staff_by_skill
+}
+
+local all_staffing_stats_by_triage = {
+        ["1"] = {['available'] = {['Apps'] = 2}, ['net_left'] = {['Apps'] = -0.1}, ['required'] = {['Apps'] = 2.1}, ['skills'] = {'Apps'}},
+        ["1.5"] = {['available'] = {['Apps'] = 2}, ['net_left'] = {['Apps'] = -0.1}, ['required'] = {['Apps'] = 2.1}, ['skills'] = {'Apps'}},
+        ["2"] = {['available'] = {['Apps'] = 2}, ['net_left'] = {['Apps'] = -1.1}, ['required'] = {['Apps'] = 3.1}, ['skills'] = {'Apps'}},
+        ["2.5"] = {['available'] = {['Apps'] = 2}, ['net_left'] = {['Apps'] = -1.1}, ['required'] = {['Apps'] = 3.1}, ['skills'] = {'Apps'}},
+        ["3"] = {['available'] = {['Apps'] = 2}, ['net_left'] = {['Apps'] = -2.1}, ['required'] = {['Apps'] = 4.1}, ['skills'] = {'Apps'}}
+}
+
+local g_staffing_stats_by_track_triage = {
+        ['All'] = all_staffing_stats_by_triage,
+        ['Alpha'] = all_staffing_stats_by_triage,
+        ['Beta'] = all_staffing_stats_by_triage
+}
+
+local all_work_items = {
+                {['estimate'] = "Apps:S, Native:M", ['feasbile'] = true, ['name'] = "ABI exposure", ['rank'] = 37, ['track'] = "Felix", ['triage'] = "1"}
+        }
+local alpha_work_items = {
+                {['estimate'] = "Apps:S, Native:M", ['feasbile'] = true, ['name'] = "ABI exposure", ['rank'] = 37, ['track'] = "Felix", ['triage'] = "2"}
+        }
+local beta_work_items = {}
+
+local g_work_items_by_track = {
+        ['All'] = all_work_items,
+        ['Alpha'] = alpha_work_items,
+        ['Beta'] = beta_work_items
+}
+
+function get_track_staff(track)
+        result = g_staff_by_track_skill[track]
+        if not result then
+                result = {}
+        end
+
+        return result
+end
+
+function get_staffing_stats(track, triage)
+        stats_by_triage = g_staffing_stats_by_track_triage[track]
+        if not stats_by_triage then
+                return {}
+        end
+
+        result = stats_by_triage[triage]
+        if not stats_by_triage then
+                return {}
+        end
+        return result
+end
+
+function get_work_items(track)
+        result = g_work_items_by_track[track]
+        if not result then
+                result = {}
+        end
+
+        return result
+end
+
 --==============================================================================
 -- Local functions
 --
+
+function handle_work2_req(req)
+        local track = 'All'
+        if req.qparams['track'] then
+                track = req.qparams['track'][1]
+                track = string.gsub(track, "%%20", " ")
+        end
+
+        local triage = "1.5"
+        if req.qparams['triage'] then
+                triage = req.qparams['triage'][1]
+        end
+
+        -- Construct result
+        local result = {}
+        result.tracks = g_tracks
+        result.staff_by_skill = get_track_staff(track)
+        result.staffing_stats = get_staffing_stats(track, triage)
+        result.work_items = get_work_items(track)
+
+
+        -- Return response
+        return RequestRouter.construct_response(
+                                        200, "application/json", json.encode(result))
+end
 
 --------------------------------------------------------------------------------
 -- Returns json object representing work for a track and triage level.

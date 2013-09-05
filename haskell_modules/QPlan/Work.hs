@@ -43,8 +43,14 @@ type Value = Float
 --
 data Triage
         = P1 | P1_5 | P2 | P2_5 | P3
-        deriving (Show, Eq, Ord)
+        deriving (Eq, Ord)
 
+instance Show Triage where
+        show P1 = "1"
+        show P1_5 = "1.5"
+        show P2 = "2"
+        show P2_5 = "2.5"
+        show P3 = "3"
 
 --------------------------------------------------------------------------------
 -- | Captures work fields necessary for answering quarterly planning questions.
@@ -54,6 +60,7 @@ data Triage
 --
 data Work
         = Work { id :: Id,
+                 rank :: Int,
                  name :: String,
                  estimate :: [Estimate],
                  triage :: Triage,
@@ -77,17 +84,18 @@ data Work
 --      filter from other filters.
 --
 workFromString :: String -> Work
-workFromString s = Work id name estimate triage track team value prereqs
+workFromString s = Work id rank name estimate triage track team value prereqs
         where
                 vals = splitOn "\t" s
                 id = vals !! 0
-                name = vals !! 1
-                estimate_str = vals !! 2
-                triage_str = vals !! 3
-                track = vals !! 4
-                team = vals !! 5
-                value_str = vals !! 6
-                prereqs = splitOn "," $ vals !! 7
+                rank = read $ vals !! 1
+                name = vals !! 2
+                estimate_str = vals !! 3
+                triage_str = vals !! 4
+                track = vals !! 5
+                team = vals !! 6
+                value_str = vals !! 7
+                prereqs = splitOn "," $ vals !! 8
                 value = if value_str == "" then 0 else read value_str
                 estimate = fromVectorString estimate_str
                 triage = parseTriage triage_str
