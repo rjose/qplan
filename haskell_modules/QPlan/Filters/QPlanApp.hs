@@ -37,7 +37,8 @@ filterString s = if any isNothing [work_stream, staff_stream]
                 numWeeks = 13
                 availableStaff = getAvailableStaff (\p -> 1) staffByTrack'
                 availableManpower = getAvailableStaff (\p -> numWeeks) staffByTrack'
-                result = show availableManpower
+                --result = show $ getNetAvail (head ranked) (snd $ head availableManpower)
+                result = show $ getIsFeasibleList (head ranked) (snd $ head availableManpower)
 
                 staff' = staffToJSValue staffByTrack'
 
@@ -48,7 +49,30 @@ filterString s = if any isNothing [work_stream, staff_stream]
                                              ("staff", staff')
                                             ]
 
---getIsFeasibleList :: [Work] -> [(SkillName, Float)] -> [Bool]
+getNetAvail :: [Work] -> [SkillAmount] -> [[SkillAmount]]
+getNetAvail work skills = scanl (\s w -> skillDifference s (estimate w)) skills work
+
+getIsFeasibleList :: [Work] -> [SkillAmount] -> [Bool]
+getIsFeasibleList work skills = result
+        where
+                net_avail = scanl (\s w -> skillDifference s (estimate w)) skills work
+                result = zipWith (\w s -> isFeasible w s) work net_avail
+
+isFeasible :: Work -> [SkillAmount] -> Bool
+isFeasible w skills = and (map (\n -> isSkillValFeasible n skills) estimateNames)
+        where
+                estimateNames = map SkillAmount.skill' $ estimate w
+
+isSkillValFeasible :: Skill -> [SkillAmount] -> Bool
+isSkillValFeasible skillname amounts = result
+        where
+                skillAmount = find (\s -> skillname == SkillAmount.skill' s) amounts
+                value = if isJust skillAmount
+                                then fmap numval' skillAmount
+                                else Nothing
+                result = if isNothing value
+                                then False
+                                else (> 0) $ fromJust value
 
 
 type TrackStaff = [(TrackName, [(SkillName, [Person])])]

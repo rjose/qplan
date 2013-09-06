@@ -17,7 +17,10 @@
 -- Module definition
 --
 module SkillAmount(
+        Skill,
         SkillAmount(..),
+        skill',
+        numval',
         fromVectorString,
         skillSum,
         skillDifference,
@@ -50,6 +53,13 @@ data SkillAmount
         | SkillNone
         deriving (Eq, Ord)
 
+skill' :: SkillAmount -> Skill
+skill' SkillNone = ""
+skill' s = skill s
+
+numval' :: SkillAmount -> Float
+numval' SkillNone = 0
+numval' s = numval s
 
 instance Show SkillAmount where
         show (SkillAmount skill strval _) = skill ++ ":" ++ strval
@@ -78,7 +88,7 @@ fromVectorString = sort . map fromString . splitOn ","
 skillSum :: [SkillAmount] -> [SkillAmount]
 skillSum ss = sum
         where
-                groups = groupBy (\l r -> skill l == skill r) $ sort ss
+                groups = groupBy (\l r -> skill' l == skill' r) $ sort ss
                 sum = map addSkillAmounts groups
 
 
@@ -89,7 +99,7 @@ skillDifference :: [SkillAmount] -> [SkillAmount] -> [SkillAmount]
 skillDifference ls rs = difference
         where
                 lsum = skillSum ls
-                rsum = [SkillSum (skill s) (- numval s) | s <- skillSum rs]
+                rsum = [SkillSum (skill' s) (- numval' s) | s <- skillSum rs]
                 difference = skillSum $ concat [lsum, rsum]
 
 
@@ -114,8 +124,8 @@ fromString s = SkillAmount skillname eststr estval
 --
 addSkillAmounts :: [SkillAmount] -> SkillAmount
 addSkillAmounts [] = SkillNone
-addSkillAmounts all@(s:ss) = SkillSum (skill s) $
-                                  foldl (\acc x -> acc + (numval x)) 0 all
+addSkillAmounts all@(s:ss) = SkillSum (skill' s) $
+                                  foldl (\acc x -> acc + (numval' x)) 0 all
 
 
 --------------------------------------------------------------------------------

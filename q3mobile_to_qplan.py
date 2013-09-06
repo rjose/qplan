@@ -45,6 +45,12 @@ def condition_tracks(tracks):
             result.append(condition_track(t))
     return result
 
+def condition_skill(skill):
+    if skill == "Server":
+            return "Apps"
+    else:
+            return skill
+
 
 # id, name, team, track, skill
 if "Raw Staff" in sections:
@@ -60,7 +66,7 @@ if "Raw Staff" in sections:
                 break
             fields = line.split("\t")
             if fields[0] != "":
-                cur_skill = fields[0]
+                cur_skill = condition_skill(fields[0])
             for i in range(1, num_tracks+1):
                 name = fields[i]
                 if (not skip_name(name)):
