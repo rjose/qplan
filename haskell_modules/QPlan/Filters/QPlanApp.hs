@@ -33,11 +33,16 @@ filterString s = if any isNothing [work_stream, staff_stream]
                 staffBySkill' = zip skills staffBySkill
                 staffByTrack = trackStaff tracks staffBySkill'
                 staffByTrack' = ("All", staffBySkill'):(zip tracks staffByTrack)
+                numWeeks = 13
+                availableStaff = getAvailableStaff (\p -> 1) staffByTrack'
+                availableManpower = getAvailableStaff (\p -> numWeeks) staffByTrack'
+                result = show availableManpower
+
                 staff' = staffToJSValue staffByTrack'
 
                 tracks' = map (JSString . toJSString) tracks
                 ranked' = processRanked tracks ranked
-                result = encode $ makeObj [("tracks", JSArray tracks'),
+                result' = encode $ makeObj [("tracks", JSArray tracks'),
                                              ("work_items", ranked'),
                                              ("staff", staff')
                                             ]
@@ -47,6 +52,14 @@ getStaff = do
         content <- readFile "_qplan.txt"
         let result = filterString content
         putStr result
+
+getAvailableStaff :: (Person -> Float) -> [(TrackName, [(SkillName, [Person])])] ->
+                     [(TrackName, [(SkillName, Float)])]
+getAvailableStaff scale staff = result
+        where
+                result = [(track, availSkills) | (track, skillGroups) <- staff,
+                        let availSkills = [(skill, avail) | (skill, people) <- skillGroups,
+                                let avail = foldr (\p a -> a + scale p) 0 people] ]
 
 type SkillName = String
 type TrackName = String
