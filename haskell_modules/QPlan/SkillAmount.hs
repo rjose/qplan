@@ -48,7 +48,13 @@ data SkillAmount
         = SkillAmount {skill :: Skill,  strval :: String, numval :: Float}
         | SkillSum {skill :: Skill, numval :: Float}
         | SkillNone
-        deriving (Show, Eq, Ord)
+        deriving (Eq, Ord)
+
+
+instance Show SkillAmount where
+        show (SkillAmount skill strval _) = skill ++ ":" ++ strval
+        show (SkillSum skill numval) = skill ++ ":" ++ show numval
+        show SkillNone = ""
 
 
 -- =============================================================================

@@ -41,10 +41,12 @@ processRanked tracks ranked = result
 
 workToJSValue :: Work -> JSValue
 workToJSValue w = makeObj [
-        ("estimate", JSString $ toJSString $ show $ estimate w),
+        ("estimate", JSString $ toJSString $ format $ estimate w),
         ("feasible", JSBool True),
         ("name", JSString $ toJSString $ name w),
         ("rank", JSRational False $ toRational $ rank w),
         ("track", JSString $ toJSString $ track w),
         ("triage", JSString $ toJSString $ show $ triage w)
         ]
+        where
+                format estimates = intercalate ", " $ map show estimates
