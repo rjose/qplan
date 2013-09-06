@@ -27,15 +27,22 @@ def skip_name(name):
                re.match(".*\HOLE", name) or \
                name == ""
 
+def condition_track(track):
+    if re.match("Money", track):
+        return "Money"
+    elif re.match("Mobilize", track):
+        return "Mobilize"
+    elif re.match("Austin", track):
+        return "Austin"
+    elif re.match("Tablet", track):
+        return "Tablet"
+    else:
+        return track
+
 def condition_tracks(tracks):
     result = []
     for t in tracks:
-        if re.match("Money", t):
-            result.append("Money")
-        elif re.match("Mobilize", t):
-            result.append("Mobilize")
-        else:
-            result.append(t)
+            result.append(condition_track(t))
     return result
 
 
@@ -70,7 +77,7 @@ if "Raw Work" in sections:
                 rank = str(cur_rank); cur_rank = cur_rank + 1
                 id = rank
                 name = fields[4]
-                track = fields[3]
+                track = condition_track(fields[3])
                 triage = fields[2]
                 team = "Mobile"
                 value = ""

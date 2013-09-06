@@ -1,4 +1,6 @@
-module Person (personFromString) where
+module Person (
+        Person(..),
+        personFromString) where
 
 import Data.List.Split
 
