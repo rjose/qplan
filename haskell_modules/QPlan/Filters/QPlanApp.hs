@@ -8,6 +8,7 @@ import Control.Applicative
 import StackStream
 import Work
 import Person
+import SkillAmount
 
 -- TODO: Add support for Staff stream
 filterString :: String -> String
@@ -28,8 +29,8 @@ filterString s = if any isNothing [work_stream, staff_stream]
                 ranked = [sortBy (\l r -> rank l `compare` rank r) ws |
                                                 ws <- (work_items:work_by_track)]
 
-                staffBySkill = groupBy (\l r -> skill l == skill r) staff
-                skills = map (skill . head) staffBySkill
+                staffBySkill = groupBy (\l r -> Person.skill l == Person.skill r) staff
+                skills = map (Person.skill . head) staffBySkill
                 staffBySkill' = zip skills staffBySkill
                 staffByTrack = trackStaff tracks staffBySkill'
                 staffByTrack' = ("All", staffBySkill'):(zip tracks staffByTrack)
@@ -47,18 +48,17 @@ filterString s = if any isNothing [work_stream, staff_stream]
                                              ("staff", staff')
                                             ]
 
--- Test functions
-getStaff = do
-        content <- readFile "_qplan.txt"
-        let result = filterString content
-        putStr result
+--getIsFeasibleList :: [Work] -> [(SkillName, Float)] -> [Bool]
 
-getAvailableStaff :: (Person -> Float) -> [(TrackName, [(SkillName, [Person])])] ->
-                     [(TrackName, [(SkillName, Float)])]
+
+type TrackStaff = [(TrackName, [(SkillName, [Person])])]
+type TrackSkillAmounts = [(TrackName, [SkillAmount])]
+
+getAvailableStaff :: (Person -> Float) -> TrackStaff -> TrackSkillAmounts
 getAvailableStaff scale staff = result
         where
                 result = [(track, availSkills) | (track, skillGroups) <- staff,
-                        let availSkills = [(skill, avail) | (skill, people) <- skillGroups,
+                        let availSkills = [(SkillSum skill avail) | (skill, people) <- skillGroups,
                                 let avail = foldr (\p a -> a + scale p) 0 people] ]
 
 type SkillName = String
@@ -110,3 +110,10 @@ personToJSValue :: Person -> JSValue
 personToJSValue p = makeObj [
         ("name", JSString $ toJSString $ Person.name p)
         ]
+
+
+-- Test functions
+getStaff = do
+        content <- readFile "_qplan.txt"
+        let result = filterString content
+        putStr result
