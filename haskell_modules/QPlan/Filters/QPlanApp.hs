@@ -18,6 +18,7 @@ type TrackStaff = [[[Person]]] -- List of tracks, each with a list of skill team
 type TrackManpower = [[Float]] -- List of tracks, each with list of skills manpower
 type TrackDemand = [[[Float]]] -- Tracks, each with a triage list, each with skills manpower
 type TrackAvail = TrackDemand -- Same size and shape as TrackDemand
+type TrackFeasibility = [[Bool]] -- List of tracks, each with bool list corresp. to worklist
 
 -- Items with a "'" are JSON-ready values
 filterString :: String -> String
@@ -40,14 +41,16 @@ filterString s = if any isNothing [workStream, staffStream]
                 trackWork = workByTrack tracks workItems
                 trackStaff = staffByTrackSkills tracks skills staff
 
-                manpower = getManpower (\p -> numWeeks) trackStaff
+                trackManpower = getManpower (\p -> numWeeks) trackStaff
                 trackDemand = getTrackDemand trackWork skills
-                netAvail = getNetAvail manpower trackDemand
+                trackAvail = getNetAvail trackManpower trackDemand
+                trackFeasibility = getTrackFeasibility skills trackManpower trackWork
 
-                result = show $ netAvail !! 3
 
+                result = show $ trackFeasibility !! 3
                 -----------------------
 
+                --result = show $ netAvail !! 3
                 --result = show $ trackDemand
                 --result = show $ (tracks !! 3, trackStaff !! 3)
                 --result = show staff
@@ -178,6 +181,17 @@ getNetAvail :: TrackManpower -> TrackDemand -> TrackAvail
 getNetAvail manpower demand = result
         where
                 result = zipWith (\mp d -> map (zipWith (-) mp) d) manpower demand
+
+getTrackFeasibility :: [SkillName] -> TrackManpower -> TrackWork -> TrackFeasibility
+getTrackFeasibility skills manpower trackWork = result
+        where
+                getMp = flip getWorkManpower
+                netAvail mp ds = tail $ scanl (zipWith (-)) mp ds
+                isFeasibile as ds = and $
+                    zipWith (\a d -> if d > 0 && a < 0 then False else True) as ds
+                trackDemand = [map (getMp skills) ws| ws <- trackWork]
+                trackAvail = zipWith netAvail manpower trackDemand
+                result = zipWith (zipWith isFeasibile) trackAvail trackDemand
 
 ----------------------
 
