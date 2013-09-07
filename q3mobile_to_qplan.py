@@ -36,6 +36,8 @@ def condition_track(track):
         return "Austin"
     elif re.match("Tablet", track):
         return "Tablet"
+    elif re.match("Soprano", track):
+        return "Tenor"
     else:
         return track
 
