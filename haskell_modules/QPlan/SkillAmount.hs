@@ -32,7 +32,6 @@ module SkillAmount(
 --
 import Data.List
 import Data.List.Split
-import qualified Data.Set as Set
 
 
 -- =============================================================================

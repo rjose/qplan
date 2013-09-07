@@ -4,59 +4,172 @@ import Data.List
 import Data.Maybe
 import Text.JSON
 import Control.Applicative
+import qualified Data.Set as Set
 
 import StackStream
 import Work
 import Person
 import SkillAmount
 
--- TODO: Add support for Staff stream
+type SkillName = String
+type TrackName = String
+type TrackWork =  [[Work]] -- List of tracks, each with a list of work
+type TrackStaff = [[[Person]]] -- List of tracks, each with a list of skill teams
+type TrackManpower = [[Float]] -- List of tracks, each with list of skills manpower
+type TrackDemand = [[[Float]]] -- Tracks, each with a triage list, each with skills manpower
+
+-- Items with a "'" are JSON-ready values
 filterString :: String -> String
-filterString s = if any isNothing [work_stream, staff_stream]
+filterString s = if any isNothing [workStream, staffStream]
                  then ""
                  else result
         where
                 streams = unstack $ lines s
 
-                work_stream = find (("Work" ==) . header) streams
-                staff_stream = find (("Staff" ==) . header) streams
+                workStream = find (("Work" ==) . header) streams
+                staffStream = find (("Staff" ==) . header) streams
 
-                work_items = map workFromString $ content $ fromJust work_stream
-                staff = map personFromString $ content $ fromJust staff_stream
-
-                work_by_track = groupBy (\l r -> Work.track l == Work.track r) work_items
-                tracks = "All":(map (Work.track . head) work_by_track)
-                ranked = [sortBy (\l r -> rank l `compare` rank r) ws |
-                                                ws <- (work_items:work_by_track)]
-
-                staffBySkill = groupBy (\l r -> Person.skill l == Person.skill r) staff
-                skills = map (Person.skill . head) staffBySkill
-                staffBySkill' = zip skills staffBySkill
-                staffByTrack = trackStaff tracks staffBySkill'
-                staffByTrack' = ("All", staffBySkill'):(zip tracks staffByTrack)
                 numWeeks = 13
-                availableStaff = getAvailableStaff (\p -> 1) staffByTrack'
-                availableManpower = getAvailableStaff (\p -> numWeeks) staffByTrack'
-                --result = show $ getIsFeasibleList (head ranked) (snd $ head availableManpower)
-                --result = show $ getSkillDemand (ranked !! 3)
-                --result = show $ workWithTriage P2_5 (ranked !! 2)
-                --result = show $ workWithAllTriages (ranked !! 3)
-                --result = show $ (workByTrackTriage ranked !! 3)
-                --result = show $  demandByTriage P1 (ranked !! 3)
-                --result = show $ demandByAllTriages (ranked !! 3)
-                --result = show $ cumulativeDemandByAllTriages (ranked !! 3)
-                --result = show $ cumulativeDemandByTrackTriage ranked
-                cumulativeDemand = cumulativeDemandByTrackTriage ranked
-                result = show $ (netAvailableByTrackTriage availableManpower cumulativeDemand) !! 7
+                workItems = map workFromString $ content $ fromJust workStream
+                staff = map personFromString $ content $ fromJust staffStream
 
-                staff' = staffToJSValue staffByTrack'
+                tracks = getTracks staff workItems
+                skills = getSkills staff workItems
 
-                tracks' = map (JSString . toJSString) tracks
-                ranked' = processRanked tracks ranked
-                result' = encode $ makeObj [("tracks", JSArray tracks'),
-                                             ("work_items", ranked'),
-                                             ("staff", staff')
-                                            ]
+                trackWork = workByTrack tracks workItems
+                trackStaff = staffByTrackSkills tracks skills staff
+
+                manpower = getManpower (\p -> numWeeks) trackStaff
+                trackDemand = getTrackDemand trackWork skills
+
+                result = show $ trackDemand
+                -----------------------
+
+                --result = show $ (tracks !! 3, trackStaff !! 3)
+                --result = show staff
+                --result = show $ zip tracks manpower
+                --result = show skills
+                --result = show $ (tracks, trackWork !! 1)
+
+
+                -- NOTE: Here, it starts getting out of hand
+                --work_by_track = groupBy (\l r -> Work.track l == Work.track r) workItems
+                --tracks2 = "All":(map (Work.track . head) work_by_track)
+                --ranked = [sortBy (\l r -> rank l `compare` rank r) ws |
+                --                                ws <- (workItems:work_by_track)]
+
+
+                -- HERE!
+                --staffBySkill = groupBy (\l r -> Person.skill l == Person.skill r) staff
+                --skills2 = map (Person.skill . head) staffBySkill
+                --staffBySkill' = zip skills2 staffBySkill
+                --staffByTrack2 = trackStaff2 tracks2 staffBySkill'
+                --staffByTrack2' = ("All", staffBySkill'):(zip tracks2 staffByTrack2)
+
+                --availableStaff = getAvailableStaff (\p -> 1) staffByTrack2'
+                --availableManpower = getAvailableStaff (\p -> numWeeks) staffByTrack2'
+                --cumulativeDemand = cumulativeDemandByTrackTriage ranked
+                --netAvail = netAvailableByTrackTriage availableManpower cumulativeDemand
+
+                ----result = show $ netAvail !! 7
+
+                --staff' = staffToJSValue staffByTrack2'
+                ----staffStats' = staffStats availableManpower cumulativeDemand netAvail
+
+                --tracks' = map (JSString . toJSString) tracks2
+                --workItems' = processRanked tracks2 ranked
+
+                --result' = encode $ makeObj [("tracks", JSArray tracks'),
+                --                            ("work_items", workItems'),
+                --                            ("staff", staff')
+                --                           ]
+
+getTracks :: [Person] -> [Work] -> [TrackName]
+getTracks staff workItems = result
+        where
+                workTracks = Set.fromList $ map Work.track workItems
+                staffTracks = Set.fromList $ map Person.track staff
+                result' = Set.toList $ Set.union workTracks staffTracks
+                result = "All":(sort result')
+
+getSkills :: [Person] -> [Work] -> [SkillName]
+getSkills staff workItems = result
+        where
+                estimates = concat $ map Work.estimate workItems
+                skillsDemanded = Set.fromList $ map skill' estimates
+                skillsAvailable = Set.fromList $ map Person.skill staff
+                result' = Set.toList $ Set.union skillsDemanded skillsAvailable
+                result = sort $ filter (\s -> s /= "") result'
+
+
+workByTrack :: [TrackName] -> [Work] -> TrackWork
+workByTrack (all:tracks) ws = result
+        where
+                result = map (sortBy (\l r -> rank l `compare` rank r)) $ ws:result'
+                result' = (\t -> filter (\w -> t == Work.track w) ws) <$> tracks
+
+
+staffByTrackSkills :: [TrackName] -> [SkillName] -> [Person] -> TrackStaff
+staffByTrackSkills (all:tracks) skills staff = result
+        where
+          staffByTrack' = map (\t -> filter (\p -> t == Person.track p) staff) tracks
+          staffByTrack = staff:staffByTrack'
+          groupBySkills ps = map (\s -> filter (\p -> s == Person.skill p) ps) skills
+          result = map groupBySkills staffByTrack
+
+
+getManpower :: (Person -> Float) -> TrackStaff -> TrackManpower
+getManpower scale staff = result
+        where
+                result = [trackPower | trackStaff <- staff,
+                          let trackPower = map (foldr (\p a -> a + scale p) 0) trackStaff]
+
+getTrackDemand :: TrackWork -> [SkillName] -> TrackDemand
+getTrackDemand trackWork skills = result
+        where
+                result = [trackDemand | ws <- trackWork,
+                           let triagedWork = map (selectTriage ws) triages
+                               trackDemand' = map (map (getMp skills)) triagedWork
+                               trackDemand'' = map sumManpower trackDemand'
+                               trackDemand''' = map (conditionDemand len) trackDemand''
+                               trackDemand = accManpower trackDemand'''
+                         ]
+                selectTriage work tri = filter (\w -> tri == triage w) work
+                triages = [P1, P1_5, P2, P2_5, P3]
+                getMp = flip getWorkManpower
+                len = length skills
+
+
+conditionDemand :: Int -> [Float] -> [Float]
+conditionDemand len demand = result
+        where
+                result = if demand == []
+                         then take len $ repeat 0
+                         else demand
+
+accManpower :: [[Float]] -> [[Float]]
+accManpower [] = []
+accManpower (m:ms) = scanl (\acc mp -> sumManpower [acc, mp]) m ms
+
+sumManpower :: [[Float]] -> [Float]
+sumManpower [] = []
+sumManpower (m:ms) = result
+        where
+                result = foldl (\acc mp -> zipWith (+) acc mp) m ms
+
+-- TODO: Move this to Work.hs
+getWorkManpower :: Work -> [SkillName] -> [Float]
+getWorkManpower work skills = result
+        where
+                result = [manpower | s <- skills,
+                           let estimates = estimate work
+                               manpower' = find (\e -> s == skill' e) estimates
+                               manpower = if isNothing manpower'
+                                          then 0
+                                          else numval' $ fromJust manpower'
+                         ]
+
+----------------------
 
 netAvailableByTrackTriage ::
         TrackSkillAmounts -> [[[SkillAmount]]] -> [(TrackName, [[SkillAmount]])]
@@ -122,18 +235,16 @@ isSkillValFeasible skillname amounts = result
                                 else (> 0) $ fromJust value
 
 
-type TrackStaff = [(TrackName, [(SkillName, [Person])])]
+type TrackStaff2 = [(TrackName, [(SkillName, [Person])])]
 type TrackSkillAmounts = [(TrackName, [SkillAmount])]
 
-getAvailableStaff :: (Person -> Float) -> TrackStaff -> TrackSkillAmounts
+getAvailableStaff :: (Person -> Float) -> TrackStaff2 -> TrackSkillAmounts
 getAvailableStaff scale staff = result
         where
                 result = [(track, availSkills) | (track, skillGroups) <- staff,
                         let availSkills = [(SkillSum skill avail) | (skill, people) <- skillGroups,
                                 let avail = foldr (\p a -> a + scale p) 0 people] ]
 
-type SkillName = String
-type TrackName = String
 
 -- Takes a list of track names and a list of skill/people groupings and
 -- returns a list of list of skill/people groupings by track.
@@ -184,7 +295,7 @@ personToJSValue p = makeObj [
 
 
 -- Test functions
-getStaff = do
+test = do
         content <- readFile "_qplan.txt"
         let result = filterString content
         putStr result
