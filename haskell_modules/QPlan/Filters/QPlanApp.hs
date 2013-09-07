@@ -45,7 +45,9 @@ filterString s = if any isNothing [work_stream, staff_stream]
                 --result = show $  demandByTriage P1 (ranked !! 3)
                 --result = show $ demandByAllTriages (ranked !! 3)
                 --result = show $ cumulativeDemandByAllTriages (ranked !! 3)
-                result = show $ cumulativeDemandByTrackTriage ranked
+                --result = show $ cumulativeDemandByTrackTriage ranked
+                cumulativeDemand = cumulativeDemandByTrackTriage ranked
+                result = show $ (netAvailableByTrackTriage availableManpower cumulativeDemand) !! 7
 
                 staff' = staffToJSValue staffByTrack'
 
@@ -55,6 +57,14 @@ filterString s = if any isNothing [work_stream, staff_stream]
                                              ("work_items", ranked'),
                                              ("staff", staff')
                                             ]
+
+netAvailableByTrackTriage ::
+        TrackSkillAmounts -> [[[SkillAmount]]] -> [(TrackName, [[SkillAmount]])]
+netAvailableByTrackTriage avail demandByTrackTriage = result
+        where
+                result = zipWith combine avail demandByTrackTriage
+                combine (track, supply) demands =(track, netAvail supply demands)
+                netAvail supply demands = skillDifference <$> [supply] <*> demands
 
 workByTrackTriage :: [[Work]] -> [[[Work]]]
 workByTrackTriage workGroups = map workWithAllTriages workGroups
