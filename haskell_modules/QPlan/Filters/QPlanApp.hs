@@ -37,8 +37,15 @@ filterString s = if any isNothing [work_stream, staff_stream]
                 numWeeks = 13
                 availableStaff = getAvailableStaff (\p -> 1) staffByTrack'
                 availableManpower = getAvailableStaff (\p -> numWeeks) staffByTrack'
-                --result = show $ getNetAvail (head ranked) (snd $ head availableManpower)
-                result = show $ getIsFeasibleList (head ranked) (snd $ head availableManpower)
+                --result = show $ getIsFeasibleList (head ranked) (snd $ head availableManpower)
+                --result = show $ getSkillDemand (ranked !! 3)
+                --result = show $ workWithTriage P2_5 (ranked !! 2)
+                --result = show $ workWithAllTriages (ranked !! 3)
+                --result = show $ (workByTrackTriage ranked !! 3)
+                --result = show $  demandByTriage P1 (ranked !! 3)
+                --result = show $ demandByAllTriages (ranked !! 3)
+                --result = show $ cumulativeDemandByAllTriages (ranked !! 3)
+                result = show $ cumulativeDemandByTrackTriage ranked
 
                 staff' = staffToJSValue staffByTrack'
 
@@ -48,6 +55,36 @@ filterString s = if any isNothing [work_stream, staff_stream]
                                              ("work_items", ranked'),
                                              ("staff", staff')
                                             ]
+
+workByTrackTriage :: [[Work]] -> [[[Work]]]
+workByTrackTriage workGroups = map workWithAllTriages workGroups
+
+workWithAllTriages :: [Work] -> [[Work]]
+workWithAllTriages work = workWithTriage <$> [P1, P1_5, P2, P2_5, P3] <*> [work]
+
+cumulativeDemandByTrackTriage :: [[Work]] -> [[[SkillAmount]]]
+cumulativeDemandByTrackTriage workGroups = map cumulativeDemandByAllTriages workGroups
+
+cumulativeDemandByAllTriages :: [Work] -> [[SkillAmount]]
+cumulativeDemandByAllTriages work = result
+        where
+                (_:result) = scanl (\acc est -> skillSum $ concat [acc, est]) [] result'
+                result' = demandByAllTriages work
+
+demandByAllTriages :: [Work] -> [[SkillAmount]]
+demandByAllTriages work = demandByTriage <$> [P1, P1_5, P2, P2_5, P3] <*> [work]
+
+demandByTriage :: Triage -> [Work] -> [SkillAmount]
+demandByTriage tri work = filter (\s -> SkillAmount.skill s /= "")  result'
+        where
+                work' = workWithTriage tri work
+                result' = skillSum $ concat $ map estimate work'
+
+workWithTriage :: Triage -> [Work] -> [Work]
+workWithTriage tri work = filter (\w -> tri == triage w) work
+
+getSkillDemand :: [Work] -> [SkillAmount]
+getSkillDemand work = skillSum $ concat $ map estimate work
 
 getNetAvail :: [Work] -> [SkillAmount] -> [[SkillAmount]]
 getNetAvail work skills = scanl (\s w -> skillDifference s (estimate w)) skills work
