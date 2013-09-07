@@ -17,6 +17,7 @@ type TrackWork =  [[Work]] -- List of tracks, each with a list of work
 type TrackStaff = [[[Person]]] -- List of tracks, each with a list of skill teams
 type TrackManpower = [[Float]] -- List of tracks, each with list of skills manpower
 type TrackDemand = [[[Float]]] -- Tracks, each with a triage list, each with skills manpower
+type TrackAvail = TrackDemand -- Same size and shape as TrackDemand
 
 -- Items with a "'" are JSON-ready values
 filterString :: String -> String
@@ -41,10 +42,13 @@ filterString s = if any isNothing [workStream, staffStream]
 
                 manpower = getManpower (\p -> numWeeks) trackStaff
                 trackDemand = getTrackDemand trackWork skills
+                netAvail = getNetAvail manpower trackDemand
 
-                result = show $ trackDemand
+                result = show $ netAvail !! 3
+
                 -----------------------
 
+                --result = show $ trackDemand
                 --result = show $ (tracks !! 3, trackStaff !! 3)
                 --result = show staff
                 --result = show $ zip tracks manpower
@@ -157,6 +161,7 @@ sumManpower (m:ms) = result
         where
                 result = foldl (\acc mp -> zipWith (+) acc mp) m ms
 
+
 -- TODO: Move this to Work.hs
 getWorkManpower :: Work -> [SkillName] -> [Float]
 getWorkManpower work skills = result
@@ -168,6 +173,11 @@ getWorkManpower work skills = result
                                           then 0
                                           else numval' $ fromJust manpower'
                          ]
+
+getNetAvail :: TrackManpower -> TrackDemand -> TrackAvail
+getNetAvail manpower demand = result
+        where
+                result = zipWith (\mp d -> map (zipWith (-) mp) d) manpower demand
 
 ----------------------
 
@@ -209,8 +219,8 @@ workWithTriage tri work = filter (\w -> tri == triage w) work
 getSkillDemand :: [Work] -> [SkillAmount]
 getSkillDemand work = skillSum $ concat $ map estimate work
 
-getNetAvail :: [Work] -> [SkillAmount] -> [[SkillAmount]]
-getNetAvail work skills = scanl (\s w -> skillDifference s (estimate w)) skills work
+getNetAvail2 :: [Work] -> [SkillAmount] -> [[SkillAmount]]
+getNetAvail2 work skills = scanl (\s w -> skillDifference s (estimate w)) skills work
 
 getIsFeasibleList :: [Work] -> [SkillAmount] -> [Bool]
 getIsFeasibleList work skills = result
