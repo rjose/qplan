@@ -30,9 +30,9 @@ filterString s = if any isNothing [workStream, staffStream]
                 workStream = find (("Work" ==) . header) streams
                 staffStream = find (("Staff" ==) . header) streams
 
-                numWeeks = 13
                 workItems = map workFromString $ content $ fromJust workStream
-                staff = map personFromString $ content $ fromJust staffStream
+                staff = sort $ map personFromString $ content $ fromJust staffStream
+                numWeeks = 13
 
                 tracks = getTracks staff workItems
                 skills = getSkills staff workItems
@@ -46,10 +46,12 @@ filterString s = if any isNothing [workStream, staffStream]
                 trackFeasibility = getTrackFeasibility skills trackManpower trackWork
 
                 result = encode $ makeObj [
-                  ("tracks", stringsToJSON tracks),
-                  ("skills", stringsToJSON skills),
-                  ("triages", stringsToJSON $ map show [P1, P1_5, P2, P2_5, P3]),
-                  ("track_stats", trackStatsToJSON trackManpower trackDemand trackAvail)
+                  ("tracks", stringsToJSValue tracks),
+                  ("skills", stringsToJSValue skills),
+                  ("triages", stringsToJSValue $ map show [P1, P1_5, P2, P2_5, P3]),
+                  ("track_stats", trackStatsToJSValue trackManpower trackDemand trackAvail),
+                  ("track_staff", trackStaffToJSValue trackStaff),
+                  ("track_work", trackWorkToJSValue trackWork)
                                           ]
 
 
@@ -158,24 +160,33 @@ getTrackFeasibility skills manpower trackWork = result
 
 
 
-trackStatsToJSON :: TrackManpower -> TrackDemand -> TrackAvail -> JSValue
-trackStatsToJSON manpower demand avail = result
+trackStatsToJSValue :: TrackManpower -> TrackDemand -> TrackAvail -> JSValue
+trackStatsToJSValue manpower demand avail = result
         where
                 result = makeObj [("manpower", manpower'),
                                   ("demand", demand'),
                                   ("net_avail", netAvail')]
-                manpower' = JSArray [floatsToJSON mp | mp <- manpower]
-                demand' = JSArray [JSArray $ map floatsToJSON d | d <- demand]
-                netAvail' = JSArray [JSArray $ map floatsToJSON a | a <- avail]
+                manpower' = JSArray [floatsToJSValue mp | mp <- manpower]
+                demand' = JSArray [JSArray $ map floatsToJSValue d | d <- demand]
+                netAvail' = JSArray [JSArray $ map floatsToJSValue a | a <- avail]
 
-stringsToJSON :: [String] -> JSValue
-stringsToJSON strings = JSArray $ map (JSString . toJSString) strings
+trackStaffToJSValue :: TrackStaff -> JSValue
+trackStaffToJSValue staff = JSArray [JSArray $ map peopleToJSValue ss | ss <- staff]
 
-floatsToJSON :: [Float] -> JSValue
-floatsToJSON floats = JSArray $ map (JSRational False . toRational) floats
+trackWorkToJSValue :: TrackWork -> JSValue
+trackWorkToJSValue work = JSArray $ map workListToJSValue work
 
+stringsToJSValue :: [String] -> JSValue
+stringsToJSValue strings = JSArray $ map (JSString . toJSString) strings
 
+floatsToJSValue :: [Float] -> JSValue
+floatsToJSValue floats = JSArray $ map (JSRational False . toRational) floats
 
+peopleToJSValue :: [Person] -> JSValue
+peopleToJSValue people = JSArray $ map personToJSValue people
+
+workListToJSValue :: [Work] -> JSValue
+workListToJSValue ws = JSArray $ map workToJSValue ws
 
 workToJSValue :: Work -> JSValue
 workToJSValue w = makeObj [
