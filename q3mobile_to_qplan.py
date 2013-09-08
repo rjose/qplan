@@ -33,7 +33,7 @@ def condition_track(track):
     elif re.match("Mobilize", track):
         return "Mobilize"
     elif re.match("Austin", track):
-        return "Austin"
+        return "Mobilize"
     elif re.match("Tablet", track):
         return "Tablet"
     elif re.match("Soprano", track):
