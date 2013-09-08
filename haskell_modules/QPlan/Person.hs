@@ -14,7 +14,10 @@ data Person = Person { id :: Id,
                        track :: String,
                        skill :: String
                      }
-                     deriving (Show)
+                     deriving (Show, Eq)
+
+instance Ord Person where
+        compare l r = compare (name l) (name r)
 
 personFromString :: String -> Person
 personFromString s = Person id name team track skill
