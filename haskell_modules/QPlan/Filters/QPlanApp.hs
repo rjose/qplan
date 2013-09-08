@@ -51,8 +51,7 @@ filterString s = if any isNothing [workStream, staffStream]
                   ("triages", stringsToJSValue $ map show [P1, P1_5, P2, P2_5, P3]),
                   ("track_stats", trackStatsToJSValue trackManpower trackDemand trackAvail),
                   ("track_staff", trackStaffToJSValue trackStaff),
-                  ("track_work", trackWorkToJSValue trackWork trackFeasibility)
-                                          ]
+                  ("track_work", trackWorkToJSValue trackWork trackFeasibility) ]
 
 
 
@@ -183,19 +182,10 @@ workToJSValue w isFeasible = makeObj [
         ("name", JSString $ toJSString $ Work.name w),
         ("rank", JSRational False $ toRational $ rank w),
         ("track", JSString $ toJSString $ Work.track w),
-        ("triage", JSString $ toJSString $ show $ triage w)
-        ]
+        ("triage", JSString $ toJSString $ show $ triage w) ]
         where
                 format estimates = intercalate ", " $ map show estimates
 
 personToJSValue :: Person -> JSValue
 personToJSValue p = makeObj [
-        ("name", JSString $ toJSString $ Person.name p)
-        ]
-
-
--- Test functions
-test = do
-        content <- readFile "_qplan.txt"
-        let result = filterString content
-        putStr result
+        ("name", JSString $ toJSString $ Person.name p) ]
