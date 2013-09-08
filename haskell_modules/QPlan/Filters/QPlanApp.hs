@@ -51,7 +51,7 @@ filterString s = if any isNothing [workStream, staffStream]
                   ("triages", stringsToJSValue $ map show [P1, P1_5, P2, P2_5, P3]),
                   ("track_stats", trackStatsToJSValue trackManpower trackDemand trackAvail),
                   ("track_staff", trackStaffToJSValue trackStaff),
-                  ("track_work", trackWorkToJSValue trackWork)
+                  ("track_work", trackWorkToJSValue trackWork trackFeasibility)
                                           ]
 
 
@@ -173,8 +173,8 @@ trackStatsToJSValue manpower demand avail = result
 trackStaffToJSValue :: TrackStaff -> JSValue
 trackStaffToJSValue staff = JSArray [JSArray $ map peopleToJSValue ss | ss <- staff]
 
-trackWorkToJSValue :: TrackWork -> JSValue
-trackWorkToJSValue work = JSArray $ map workListToJSValue work
+trackWorkToJSValue :: TrackWork -> TrackFeasibility -> JSValue
+trackWorkToJSValue work feasibilty = JSArray $ zipWith workListToJSValue work feasibilty
 
 stringsToJSValue :: [String] -> JSValue
 stringsToJSValue strings = JSArray $ map (JSString . toJSString) strings
@@ -185,13 +185,13 @@ floatsToJSValue floats = JSArray $ map (JSRational False . toRational) floats
 peopleToJSValue :: [Person] -> JSValue
 peopleToJSValue people = JSArray $ map personToJSValue people
 
-workListToJSValue :: [Work] -> JSValue
-workListToJSValue ws = JSArray $ map workToJSValue ws
+workListToJSValue :: [Work] -> [Bool] -> JSValue
+workListToJSValue ws fs = JSArray $ zipWith workToJSValue ws fs
 
-workToJSValue :: Work -> JSValue
-workToJSValue w = makeObj [
+workToJSValue :: Work -> Bool -> JSValue
+workToJSValue w isFeasible = makeObj [
         ("estimate", JSString $ toJSString $ format $ estimate w),
-        ("feasible", JSBool True),
+        ("feasible", JSBool isFeasible),
         ("name", JSString $ toJSString $ Work.name w),
         ("rank", JSRational False $ toRational $ rank w),
         ("track", JSString $ toJSString $ Work.track w),
