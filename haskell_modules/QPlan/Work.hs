@@ -18,7 +18,8 @@
 module Work(
         Triage(..),
         Work(..),
-        workFromString
+        workFromString,
+        getWorkManpower
 ) where
 
 
@@ -26,7 +27,9 @@ module Work(
 -- Module imports
 --
 
+import Data.List
 import Data.List.Split
+import Data.Maybe
 
 import SkillAmount
 
@@ -99,6 +102,25 @@ workFromString s = Work id rank name estimate triage track team value prereqs
                 value = if value_str == "" then 0 else read value_str
                 estimate = fromVectorString estimate_str
                 triage = parseTriage triage_str
+
+
+--------------------------------------------------------------------------------
+-- | Returns required manpower in terms of specified skills.
+--
+--      The [String] list has a list of the skills that correspond to the
+--      returned list of Floats.
+--
+getWorkManpower :: Work -> [String] -> [Float]
+getWorkManpower work skills = result
+        where
+                result = [manpower | s <- skills,
+                           let estimates = estimate work
+                               manpower' = find (\e -> s == skill' e) estimates
+                               manpower = if isNothing manpower'
+                                          then 0
+                                          else numval' $ fromJust manpower'
+                         ]
+
 
 
 -- =============================================================================

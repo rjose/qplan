@@ -130,18 +130,6 @@ sumManpower (m:ms) = result
                 result = foldl (\acc mp -> zipWith (+) acc mp) m ms
 
 
--- TODO: Move this to Work.hs
-getWorkManpower :: Work -> [SkillName] -> [Float]
-getWorkManpower work skills = result
-        where
-                result = [manpower | s <- skills,
-                           let estimates = estimate work
-                               manpower' = find (\e -> s == skill' e) estimates
-                               manpower = if isNothing manpower'
-                                          then 0
-                                          else numval' $ fromJust manpower'
-                         ]
-
 getNetAvail :: TrackManpower -> TrackDemand -> TrackAvail
 getNetAvail manpower demand = result
         where
