@@ -2,6 +2,7 @@ require('string_utils')
 local RequestRouter = require('request_router')
 local Person = require('person')
 local Work = require('work')
+local Json = require('json')
 
 --==============================================================================
 -- Local declarations
@@ -10,6 +11,22 @@ local RESOURCE_INDEX = 2
 
 local UpdateRouter = {}
 
+function add_qplan_lookup_tables(qplan)
+        qplan.track_index = {}
+        for i, v in ipairs(qplan.data.tracks) do
+                qplan.track_index[v] = i
+        end
+
+        qplan.triage_index = {}
+        for i, v in ipairs(qplan.data.triages) do
+                qplan.triage_index[v] = i
+        end
+
+        qplan.track_index = {}
+        for i, v in ipairs(qplan.data.tracks) do
+                qplan.track_index[v] = i
+        end
+end
 
 
 --==============================================================================
@@ -21,6 +38,10 @@ local UpdateRouter = {}
 -- Updates data in the plan.
 --
 -- This is the endpoint of a unix pipeline to update plan data.
+--
+-- NOTE: This is a little subtle. Updating fields of req.plan or req.qplan will
+-- update fields in module objects in router.lua. All requests can access this
+-- info.
 --
 function UpdateRouter.router(req)
         local lines
@@ -55,6 +76,13 @@ function UpdateRouter.router(req)
                         print("Updating plan")
                         return RequestRouter.construct_response(200,
                                                        "application/text", "")
+                elseif resource == 'qplan' then
+                        req.qplan.data = Json.decode(req.body)
+                        add_qplan_lookup_tables(req.qplan)
+                        print(req.qplan.track_index["Contacts"])
+                        return RequestRouter.construct_response(200,
+                                                       "application/text", "")
+
                 end
         end
 

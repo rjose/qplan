@@ -19,6 +19,9 @@ local m_plan = Plan.new{
         staff = {}
 }
 
+local m_qplan = {}
+m_qplan.data = nil
+
 --------------------------------------------------------------------------------
 -- Routers
 --
@@ -43,6 +46,7 @@ function Router.handle_request(req_string, body)
 
         -- Share the Plan object with all requests
         req.plan = m_plan
+        req.qplan = m_qplan
 
         return RequestRouter.route_request(req)
 end

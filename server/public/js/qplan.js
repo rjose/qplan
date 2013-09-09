@@ -1,26 +1,36 @@
+function toNumPeople(trackStats, numWeeks) {
+   if (numWeeks <= 0) {
+      return trackStats;
+   }
+
+   var numSkills = trackStats.manpower.length;
+   for (var i = 0; i < numSkills; i++) {
+      trackStats.manpower[i] = trackStats.manpower[i]/numWeeks;
+      trackStats.demand[i] = trackStats.demand[i]/numWeeks;
+      trackStats.net_avail[i] = trackStats.net_avail[i]/numWeeks;
+   }
+
+   return trackStats;
+}
+
 function WorkCtrl($scope, $http) {
     $scope.default_track = "All";
     $scope.tracks = [$scope.default_track];
     $scope.selected_track = $scope.default_track;
     $scope.triage = 1.5;
-    $scope.staffing_stats = {
-        skills: [],
-        required: {},
-        available: {},
-        net_left: {},
-        feasible_line: 100
-    };
+    $scope.track_stats = {};
     $scope.work_items = [];
     $scope.staff_by_skill = {};
 
     $scope.update = function() {
-        $http.get('/app/web/work2?triage=' + $scope.triage + "&track=" + $scope.selected_track).then(
+        $http.get('/app/web/qplan?triage=' + $scope.triage + "&track=" + $scope.selected_track).then(
             function(res) {
             console.dir(res);
 
-            var tmp = [$scope.default_track];
-            $scope.tracks = tmp.concat(res.data.tracks);
-            $scope.staffing_stats = res.data.staffing_stats;
+            var numWeeks = 13; // TODO: Get this from the server
+            $scope.tracks = res.data.tracks;
+            $scope.skills = res.data.skills;
+            $scope.track_stats = toNumPeople(res.data.track_stats, numWeeks)
             $scope.work_items = res.data.work_items;
             $scope.staff_by_skill = res.data.staff_by_skill;
         },

@@ -36,27 +36,27 @@
          <table class='stats'>
             <tr>
                <th></th>
-               <th ng-repeat='skill in staffing_stats.skills' class='col-head'>
+               <th ng-repeat='skill in skills' class='col-head'>
                   {{skill}}
                </th>
             </tr>
             <tr>
-               <th class='row-head'>Required</th>
-               <td ng-repeat='skill in staffing_stats.skills'>
-                  {{staffing_stats.required[skill]}}
+               <th class='row-head'>Available</th>
+               <td ng-repeat='skill in skills'>
+                  {{track_stats.manpower[$index].toFixed(1)}}
                </td>
             </tr>
             <tr>
-               <th class='row-head'>Available</th>
-               <td ng-repeat='skill in staffing_stats.skills'>
-                  {{staffing_stats.available[skill]}}
+               <th class='row-head'>Required</th>
+               <td ng-repeat='skill in skills'>
+                  {{track_stats.demand[$index].toFixed(1)}}
                </td>
             </tr>
             <tr class='net-left'>
                <th class='row-head'>Net Left</th>
-               <td ng-repeat='skill in staffing_stats.skills'
-                  class='understaffed-{{staffing_stats.net_left[skill] <= 0}}'>
-                  {{staffing_stats.net_left[skill]}}
+               <td ng-repeat='skill in skills'
+                  class='understaffed-{{track_stats.net_avail[$index] <= 0}}'>
+                  {{track_stats.net_avail[$index].toFixed(1)}}
                </td>
             </tr>
          </table>
@@ -85,10 +85,10 @@
 
          <section id='staff'>
          <h2>{{selected_track}} Staff</h2>
-         <div ng-repeat='skill in staffing_stats.skills'>
-            <h3 class='enough-staff-{{staffing_stats.net_left[skill] > 0}}'>{{skill}}</h3>
+         <div ng-repeat='skill in skills'>
+            <h3 class='enough-staff-{{track_stats.net_avail[$index] > 0}}'>{{skill}}</h3>
             <ol>
-               <li ng-repeat='person in staff_by_skill[skill]'>{{person}}</li>
+               <li ng-repeat='person in staff_by_skill[$index]'>{{person.name}}</li>
             </ol>
          </div>
          </section>
