@@ -50,6 +50,8 @@ def condition_tracks(tracks):
 def condition_skill(skill):
     if skill == "Server":
             return "Apps"
+    elif re.match("BB", skill):
+            return "BB"
     else:
             return skill
 
