@@ -18,7 +18,11 @@ The mobile_q3.ini file should have a format like this:
 
 To condition the spreadsheet data into a form that the qplan filter can
 consume, you'll need to write your own script to convert it to known stream
-types (TODO: Add spec for these). Once you have this script, you can do this:
+types. In this case, we'll need a
+link:https://github.com/rjose/stream-specs/blob/master/work.txt["qplan work
+v1"] stream and a
+link:https://github.com/rjose/stream-specs/blob/master/staff.txt["qplan staff
+v1"] stream. Once you have this script, you can do this:
 
         . cat _q3_mobile.txt | q3mobile_to_qplan.py > _qplan.txt
 

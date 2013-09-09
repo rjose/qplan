@@ -55,8 +55,8 @@ filterString s = if any isNothing [workStream, staffStream]
         where
                 streams = unstack $ lines s
 
-                workStream = find (("Work" ==) . header) streams
-                staffStream = find (("Staff" ==) . header) streams
+                workStream = find (("qplan work v1" ==) . header) streams
+                staffStream = find (("qplan staff v1" ==) . header) streams
 
                 workItems = map workFromString $ content $ fromJust workStream
                 staff = sort $ map personFromString $ content $ fromJust staffStream

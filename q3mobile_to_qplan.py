@@ -57,11 +57,11 @@ def condition_skill(skill):
 
 
 # id, name, team, track, skill
-if "Raw Staff" in sections:
+if "raw staff" in sections:
         cur_id = 1
         num_tracks = 7
-        print("=====Staff")
-        lines = sections["Raw Staff"].split("\n")[1:]
+        print("=====qplan staff v1")
+        lines = sections["raw staff"].split("\n")[1:]
         tracks = condition_tracks(lines[0].split("\t")[:num_tracks+1])
         cur_skill = ""
 
@@ -78,10 +78,10 @@ if "Raw Staff" in sections:
                     cur_id = cur_id + 1
 
 # id, name, estimate, triage, track, team, value, prereqs
-if "Raw Work" in sections:
-        print("=====Work")
+if "raw work" in sections:
+        print("=====qplan work v1")
         cur_rank = 1
-        for line in sections["Raw Work"].split("\n")[1:]:
+        for line in sections["raw work"].split("\n")[1:]:
                 fields = line.split("\t")
 
                 rank = str(cur_rank); cur_rank = cur_rank + 1
