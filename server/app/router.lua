@@ -1,4 +1,3 @@
-local Plan = require('plan')
 local AppRouter = require('./routers/app_router')
 local UpdateRouter = require('./routers/update_router')
 local BroadcastRouter = require('./routers/broadcast_router')
@@ -11,13 +10,8 @@ local RequestParser = require('request_parser')
 local RequestRouter = require('request_router')
 local Router = {}
 
-local m_plan = Plan.new{
-        id = 1,
-        name = "QPlan",
-        num_weeks = 13,
-        work_array = {},
-        staff = {}
-}
+local m_qplan = {}
+m_qplan.data = nil
 
 --------------------------------------------------------------------------------
 -- Routers
@@ -41,8 +35,8 @@ function Router.handle_request(req_string, body)
         local req = RequestParser.parse_request(req_string)
         req.body = body
 
-        -- Share the Plan object with all requests
-        req.plan = m_plan
+        -- Share qplan data with all requests
+        req.qplan = m_qplan
 
         return RequestRouter.route_request(req)
 end

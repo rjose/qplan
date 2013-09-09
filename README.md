@@ -1,46 +1,45 @@
 qplan
 =====
 
-To start the web UI, do
+Starting a QPlan server
+-----------------------
 
-   catserve -r=/home/rjose/products/qplan/server/ -p=8888
+To get spreadsheet data:
 
-This is how you get work and staff from a qplan server:
+        . cat mobile_q3.ini | gcat.py > _q3_mobile.txt
 
-   curl localhost:8888/app/text/work
-   curl localhost:8888/app/text/staff
+The mobile_q3.ini file should have a format like this:
 
-This is how you might generate something that could be grouped by track:
-
-        cat all_work.txt| extract_packed.sh 6 track | group_by.lua 7 > rbt_input.txt
-
-
-
-This shows how to use the rbt script:
-
-        cat rbt_input.txt | filter_pf.sh track sop| filter_num.sh 5 1 1.5 |
-        rbt.lua `weeks_left.py Q4`
-
-
-This shows how to use two streams to generate data for net_supply:
-
-        (stack_streams.sh 2&;
-        cat all_work.txt | cut -f 4 | running_est_sum.lua >ss2;
-        cat all_staff.txt | supply_sum.sh Q4 >ss1) > net_supply_input.txt
-
-        cat net_supply_input.txt| net_left.awk
-
-
-Need to show how to use gcat to pull spreadsheet data
-
-This is used to get status data for project status and backlog reports:
-cat source2.ini | gcat.py > _status_data.txt. The format of source2.ini is:
-
-        [Work]
+        [raw work]
         w1 = <worksheet key>:<spreadsheet index>
 
-        [Status]
+        [raw staff]
         s1 = <worksheet key>:<spreadsheet index>
+
+To condition the spreadsheet data into a form that the qplan filter can
+consume, you'll need to write your own script to convert it to known stream
+types. In this case, we'll need a
+link:https://github.com/rjose/stream-specs/blob/master/work.txt["qplan work
+v1"] stream and a
+link:https://github.com/rjose/stream-specs/blob/master/staff.txt["qplan staff
+v1"] stream. Once you have this script, you can do this:
+
+        . cat _q3_mobile.txt | q3mobile_to_qplan.py > _qplan.txt
+
+To get JSON data applicable for the qplan app, pipe the conditioned streams
+into the qplan filter:
+
+        . cat _qplan.txt | qplan > q3.json
+
+To start the web UI, do
+
+        . catserve -r=./server/ -p=8888
+        . cat q3.json | sed s/\'//g | curl -X POST -d @- localhost:8888/qplan
+
+
+Generating a status report
+--------------------------
+NOTE: This will change to use the qplan filter
 
 This is how to generate a status report:
 
