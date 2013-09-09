@@ -18,8 +18,8 @@ qplanModule.controller("QPlanCtrl",
 
       $scope.default_track = "All";
       $scope.tracks = [$scope.default_track];
-      $scope.selected_track = $scope.default_track;
-      $scope.triage = 1.5;
+      $scope.track = $scope.default_track;
+      $scope.triage = 1;
       $scope.track_stats = {};
       $scope.work_items = [];
       $scope.staff_by_skill = {};
@@ -31,8 +31,8 @@ qplanModule.controller("QPlanCtrl",
       //------------------------------------------------------------------------
       // Updates page given new track and triage.
       //
-      $scope.update = function() {
-         $http.get('/app/web/qplan?triage=' + $scope.triage + "&track=" + $scope.selected_track).then(
+      $scope.update = function(track, triage) {
+         $http.get('/app/web/qplan?triage=' + triage + "&track=" + track).then(
          function(res) {
             var numWeeks = 13; // TODO: Get this from the server
             $scope.tracks = res.data.tracks;
@@ -40,6 +40,8 @@ qplanModule.controller("QPlanCtrl",
             $scope.track_stats = toNumPeople(res.data.track_stats, numWeeks)
             $scope.work_items = res.data.work_items;
             $scope.staff_by_skill = res.data.staff_by_skill;
+            $scope.track = track;
+            $scope.triage = triage;
          },
          function(res) {
             console.log("Ugh.");
@@ -53,17 +55,46 @@ qplanModule.controller("QPlanCtrl",
       $scope.selectTrack = function(track) {
          angular.forEach($scope.tracks, function(t) {
                if (t == track) {
-                  $scope.selected_track = t;
-                  $scope.update();
+                  // TODO: Change the URL instead
+                  //$scope.update(track, $scope.triage);
+                  setPath(track, $scope.triage);
                }
          });
       };
 
+      $scope.triageChanged = function() {
+         setPath($scope.track, $scope.triage);
+      };
+
+      //========================================================================
+      // Controller behavior
+      //
+      $scope.$watch(function() {return $location.path()},
+         function(newpath) {
+            renderPath(newpath);
+         }
+      );
 
 
       //========================================================================
       // Internal functions
       //
+      function renderPath(path) {
+         var fields = path.split("/");
+         var track = fields[1];
+         var triage = fields[2];
+         if (!track) {
+            track = "All";
+         }
+         if (!triage) {
+            triage = "1";
+         }
+         $scope.update(track, triage);
+      }
+
+      setPath = function(track, triage) {
+         $location.path(track + '/' + triage);
+      }
 
       //------------------------------------------------------------------------
       // Converts track stats from manpower to num people.
@@ -82,96 +113,6 @@ qplanModule.controller("QPlanCtrl",
 
          return trackStats;
       }
-
-      // Trigger update when starting
-      $scope.update();
-
-      //      //========================================================================
-      //      // Static declarations
-      //      //
-      //      var renderPath;
-      //      var setSelectedPath;
-      //
-      //      //------------------------------------------------------------------------
-      //      // Updates "selected" scope variable when a chart is selected.
-      //      //
-      //      //    Typically, this will be called when someone clicks on one of the
-      //      //    charts in the view.
-      //      //
-      //      $scope.selectChart = function(index) {
-      //         if ($scope.selected == index) {
-      //            setSelectedPath(null);
-      //            $scope.selected = null;
-      //         }
-      //         else {
-      //            setSelectedPath(index);
-      //            $scope.selected = index;
-      //         }
-      //
-      //      };
-      //
-      //
-      //      //------------------------------------------------------------------------
-      //      // Renders page whenever URL changes.
-      //      //
-      //      $scope.$watch(function() {return $location.path()},
-      //         function(newpath) {
-      //            renderPath(newpath.substring(1));
-      //         }
-      //      );
-      //
-      //
-      //      //========================================================================
-      //      // Internal functions
-      //      //
-      //
-      //      //------------------------------------------------------------------------
-      //      // Renders the state of the page given the path.
-      //      //
-      //      //    This is the funnel point for all changes to the page. If a user
-      //      //    selects a chart, the render eventually comes through here.
-      //      //
-      //      //    We know when a page has been reloaded or visited directly because
-      //      //    $scope.charts will not yet have been set. For this case, there
-      //      //    should be no animation.
-      //      //
-      //      //    For the case where the user is interacting with the page, the charts
-      //      //    will animate into place.
-      //      //
-      //      renderPath = function(path) {
-      //         var matcher = /chart(\d+)/;
-      //         var match = matcher.exec(path);
-      //         if (match) {
-      //            $scope.selected = parseInt(match[1]);
-      //         }
-      //         else {
-      //            $scope.selected = null;
-      //         }
-      //
-      //         // If need to load data, do so. This should cause a render without
-      //         // animation.
-      //         if (!$scope.charts) {
-      //            // TODO: Make an ajax call to get them
-      //            setTimeout(function() {
-      //               $scope.charts = sample_charts;
-      //               $scope.$apply();
-      //            }, 0);
-      //         }
-      //      }
-      //
-      //
-      //      //------------------------------------------------------------------------
-      //      // Sets the hash fragment part of the URL
-      //      //
-      //      setSelectedPath = function(index) {
-      //         if (index == null) {
-      //            $location.path('main');
-      //         }
-      //         else {
-      //            $location.path('chart' + index);
-      //         }
-      //      }
-
       }]
 );
 

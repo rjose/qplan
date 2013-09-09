@@ -15,8 +15,8 @@
 
          <section id='track-selector'>
          <ul>
-            <li ng-repeat='track in tracks' class='selected-{{selected_track == track}}'>
-            <a href='' ng-click='selectTrack(track)'>{{track}}</a>
+            <li ng-repeat='t in tracks' class='selected-{{track == t}}'>
+            <a href='' ng-click='selectTrack(t)'>{{t}}</a>
             </li>
          </ul>
          </section>
@@ -25,11 +25,11 @@
 
       <div id='main-content' class="wrapper">
          <section id='main'>
-         <h2>{{selected_track}} Work</h2>
+         <h2>{{track}} Work</h2>
 
          <div id='triage-slider'>
             <span>Triage: </span>
-            <input type='range' min='1' max='3' step='0.5' ng-model='triage' ng-change='update()'>
+            <input type='range' min='1' max='3' step='0.5' ng-model='triage' ng-change='triageChanged()'>
             <span>{{triage}}</span>
          </div>
          <h3>Staffing Stats</h3>
@@ -84,7 +84,7 @@
          </section>
 
          <section id='staff'>
-         <h2>{{selected_track}} Staff</h2>
+         <h2>{{track}} Staff</h2>
          <div ng-repeat='skill in skills'>
             <h3 class='enough-staff-{{track_stats.net_avail[$index] > 0}}'>{{skill}}</h3>
             <ol>
