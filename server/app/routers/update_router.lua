@@ -20,9 +20,8 @@ local add_qplan_lookup_tables = nil
 --
 -- This is the endpoint of a unix pipeline to update plan data.
 --
--- NOTE: This is a little subtle. Updating fields of req.plan or req.qplan will
--- update fields in module objects in router.lua. All requests can access this
--- info.
+-- NOTE: This is a little subtle. Updating fields of req.qplan will update
+-- fields in module objects in router.lua. All requests can access this info.
 --
 function UpdateRouter.router(req)
         local lines
