@@ -18,12 +18,15 @@ charts.shortagechart = {
    //------------------------------------------------------------------------------
    // Draws shortage chart in svg element.
    //
-   draw: function(svg, scope) {
+   draw: function(svg, scope, w, h, labelSize) {
       var chart = scope.chart;
 
       if (!chart.type) return;
       var height = 700;
       var width = 700;
+      if (w) { width = w; }
+      if (h) { height = h;}
+
       charts.setChartHeight(svg, height);
       charts.setChartWidth(svg, width);
 
@@ -51,15 +54,15 @@ charts.shortagechart = {
          var innerRadius = outerRadius *
                            Math.sqrt(shortageInfo.totalShortage/totalDemand);
 
-         drawDonut(svg, chart.dataset.demand, outerRadius, innerRadius, cx, cy, false);
-         drawHole(svg, shortageInfo.shortages, innerRadius, cx, cy, false);
+         drawDonut(svg, chart.dataset.demand, outerRadius, innerRadius, cx, cy, false, labelSize);
+         drawHole(svg, shortageInfo.shortages, innerRadius, cx, cy, false, labelSize);
       }
       else {
          var innerRadius = outerRadius *
             Math.sqrt(totalDemand/(shortageInfo.totalShortage + totalDemand));
 
-         drawHole(svg, chart.dataset.demand, innerRadius, cx, cy, true);
-         drawDonut(svg, shortageInfo.shortages, outerRadius, innerRadius, cx, cy, true);
+         drawHole(svg, chart.dataset.demand, innerRadius, cx, cy, true, labelSize);
+         drawDonut(svg, shortageInfo.shortages, outerRadius, innerRadius, cx, cy, true, labelSize);
       }
    }
 }
@@ -69,10 +72,11 @@ charts.shortagechart = {
 // Static functions
 //
 
-drawDonut = function(svg, dataset, outerRadius, innerRadius, cx, cy, is_inverted) {
+drawDonut = function(svg, dataset, outerRadius, innerRadius, cx, cy, is_inverted, l) {
    // Parameters
    //
    var labelSize = 20;
+   if (l) {labelSize = l;}
    var color = d3.scale.category10();
    var textColor = "white";
    var stroke = "none";
@@ -120,12 +124,13 @@ drawDonut = function(svg, dataset, outerRadius, innerRadius, cx, cy, is_inverted
       });
 }
 
-drawHole = function(svg, dataset, radius, cx, cy, is_inverted) {
+drawHole = function(svg, dataset, radius, cx, cy, is_inverted, l) {
    // Parameters
    //
    var outerRadius = radius;
    var innerRadius = 0;
    var labelSize = 20;
+   if (l) {labelSize = l;}
 
    var color = function(i) {return "#333"};
    var strokeWidth = 2;

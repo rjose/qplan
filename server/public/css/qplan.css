@@ -52,7 +52,7 @@ body {
 }
 
 #track-selector li.selected-true a {
-        background-color: blue;
+        background-color: #1f77b4;
         outline-style: none;
 }
 
@@ -93,7 +93,7 @@ section#staff {
 }
 
 #staff h3.enough-staff-false {
-        color: red;
+        color: #d62728;
 }
 
 /* ============================================================================
@@ -112,6 +112,15 @@ section#staff {
 #triage-slider input {
         vertical-align: middle;
         display: inline-block;
+}
+
+/* ============================================================================
+ * Shortage chart
+ */
+#chart {
+        width: 300px;
+        height: 300px;
+        float:right;
 }
 
 /* ============================================================================
@@ -139,7 +148,7 @@ table.stats {
 } 
 
 td.understaffed-true {
-        color: red;
+        color: #d62728;
         font-weight: bold;
 }
 
@@ -184,9 +193,9 @@ table.work-details {
 }
 
 .feasible-false td {
-        color: red;
+        color: #d62728;
 }
 
 .in-triage-true td:first-child {
-        border-left: 7px solid blue;
+        border-left: 7px solid #1f77b4;
 } 

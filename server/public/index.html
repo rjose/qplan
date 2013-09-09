@@ -4,8 +4,13 @@
    <head>
       <meta charset="UTF-8">
       <title>QPlan Work</title>
+      <script src="./js/jquery.min.js"></script>
       <script src="./js/angular.min.js"></script>
+      <script src="./js/d3.v3.min.js"></script>
+
       <script src="./js/qplan.js"></script>
+      <script src="./js/charts.js"></script>
+      <script src="./js/charts/shortagechart.js"></script>
       <link rel="stylesheet" href="./css/qplan.css">
    </head>
 
@@ -31,7 +36,10 @@
             <span>Triage: </span>
             <input type='range' min='1' max='3' step='0.5' ng-model='triage' ng-change='triageChanged()'>
             <span>{{triage}}</span>
+            <div chart id="chart"></div>
          </div>
+
+
          <h3>Staffing Stats</h3>
          <table class='stats'>
             <tr>

@@ -42,6 +42,8 @@ qplanModule.controller("QPlanCtrl",
             $scope.staff_by_skill = res.data.staff_by_skill;
             $scope.track = track;
             $scope.triage = triage;
+
+            setChartData($scope.track_stats, $scope.skills);
          },
          function(res) {
             console.log("Ugh.");
@@ -96,6 +98,26 @@ qplanModule.controller("QPlanCtrl",
          $location.path(track + '/' + triage);
       }
 
+      setChartData = function(trackStats, skills) {
+         var totalDemand = 0;
+         for (var i=0; i < trackStats.demand.length; i++) {
+            totalDemand = totalDemand + trackStats.demand[i];
+         }
+
+         var shortage = [];
+         for (var i=0; i < trackStats.net_avail.length; i++) {
+            shortage.push({label: skills[i], value: -trackStats.net_avail[i]});
+         }
+
+         $scope.chart = {
+            type: "shortagechart",
+               dataset: {
+                  demand: [{label: "Required", value: totalDemand}],
+                  shortage: shortage
+               }
+         };
+      }
+
       //------------------------------------------------------------------------
       // Converts track stats from manpower to num people.
       //
@@ -116,3 +138,31 @@ qplanModule.controller("QPlanCtrl",
       }]
 );
 
+
+//==============================================================================
+// Directives
+//
+
+qplanModule.directive("chart", function() {
+   return {
+      link: function(scope, element, attrs) {
+         var el = element[0];
+         var width = el.offsetWidth;
+         var height = el.offsetHeight;
+
+         scope.$watch('chart', function() {
+            if (!scope.chart) return;
+
+            // Clear out contents before creating new chart
+            $(el).empty();
+
+            var svg = d3.select(element[0])
+               .append("svg")
+               .attr("width", width)
+               .attr("height", height);
+
+            var labelSize = 15;
+            charts.shortagechart.draw(svg, scope, width, height, labelSize);
+         });
+      }
+   } });
