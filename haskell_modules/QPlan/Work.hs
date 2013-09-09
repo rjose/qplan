@@ -38,7 +38,7 @@ type Value = Float
 --
 data Triage
         = P1 | P1_5 | P2 | P2_5 | P3
-        deriving (Eq, Ord)
+        deriving (Eq, Ord, Enum)
 
 instance Show Triage where
         show P1 = "1"

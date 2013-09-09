@@ -76,7 +76,7 @@ filterString s = if any isNothing [workStream, staffStream]
                 result = encode $ makeObj [
                   ("tracks", stringsToJSValue tracks),
                   ("skills", stringsToJSValue skills),
-                  ("triages", stringsToJSValue $ map show [P1, P1_5, P2, P2_5, P3]),
+                  ("triages", stringsToJSValue $ map show [P1 .. P3]),
                   ("track_stats", trackStatsToJSValue trackManpower trackDemand trackAvail),
                   ("track_staff", trackStaffToJSValue trackStaff),
                   ("track_work", trackWorkToJSValue trackWork trackFeasibility) ]
@@ -177,7 +177,7 @@ getTrackDemand trackWork skills = result
                                trackDemand = accManpower trackDemand'''
                          ]
                 selectTriage work tri = filter (\w -> tri == triage w) work
-                triages = [P1, P1_5, P2, P2_5, P3]
+                triages = [P1 .. P3]
                 getMp = flip getWorkManpower
                 len = length skills
 
