@@ -3,6 +3,7 @@ module Person (
         personFromString) where
 
 import Data.List.Split
+import Data.Time.Calendar
 
 -- id, name, team, track, skill
 
@@ -12,7 +13,8 @@ data Person = Person { id :: Id,
                        name :: String,
                        team :: String,
                        track :: String,
-                       skill :: String
+                       skill :: String,
+                       holidays :: [Day]
                      }
                      deriving (Show, Eq)
 
@@ -20,7 +22,7 @@ instance Ord Person where
         compare l r = compare (name l) (name r)
 
 personFromString :: String -> Person
-personFromString s = Person id name team track skill
+personFromString s = Person id name team track skill holidays
         where
                 vals = splitOn "\t" s
                 id = vals !! 0
@@ -28,6 +30,7 @@ personFromString s = Person id name team track skill
                 team = vals !! 2
                 track = vals !! 3
                 skill = vals !! 4
+                holidays = []
 
 personLine = "10\tMichael\tMobile\tMobilize\tNative"
 person = personFromString personLine
