@@ -132,7 +132,7 @@ drawHole = function(svg, dataset, radius, cx, cy, is_inverted, l) {
    var labelSize = 20;
    if (l) {labelSize = l;}
 
-   var color = function(i) {return "#333"};
+   var color = function(i) {return "#d62728"};
    var strokeWidth = 2;
    var stroke = "white";
    if (is_inverted) {

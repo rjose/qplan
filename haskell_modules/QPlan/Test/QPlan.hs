@@ -2,16 +2,20 @@ import Data.Monoid
 import Test.Framework
 import Test.Framework.Providers.HUnit
 import Test.HUnit
+
 import StackStream
+
 import Test.TestSkillAmount
 import Test.TestWork
+import Test.TestSchedule
 
 main :: IO ()
 main = defaultMainWithOpts
         [ testCase "rev" testRev,
           testCase "unstack" test_unstack,
           testCase "TestSkillAmount" testSkillAmount,
-          testCase "TestWork" testWork
+          testCase "TestWork" testWork,
+          testCase "TestSchedule" testSchedule
         ] mempty
 
 testRev :: Assertion

@@ -1,12 +1,21 @@
-module Filters.Schedule (filterString) where
+module Filters.Schedule
+        (
+         Availability,
+         filterString,
+         stringToDay,
+         getDays)
+where
 
 import Data.Maybe
 import Data.Time.Calendar
 import Data.Time.Format
 import System.Locale
-import Person
 
-type Availability = [Int] -- List corresponding to num people availabile on a given day
+import Person
+import Work
+import Filters.Utils
+
+type Availability = [Float] -- List corresponding to num people availabile on a given day
 
 filterString :: String -> String
 filterString s = result
@@ -22,15 +31,21 @@ filterString s = result
                 oct10 = stringToDay "Oct 10, 2013"
                 appsStaff = [(Person "1" "Person1" "Mobile" "Track1" "Apps" [oct10]),
                              (Person "2" "Person2" "Mobile" "Track1" "Apps" [])]
-                qaStaff = [(Person "3" "Person3" "Mobile" "Track1" "SET" [])]
 
                 days = getDays startDate endDate
                 holidays = map stringToDay holidays'
                 workDays = map (isWorkDay holidays) days
 
+                skills = ["Apps"]
                 appsAvail = sumAvailability $ map (getAvailability workDays) appsStaff
+                skillsAvail = [appsAvail]
 
-                result = show appsAvail
+                -- TODO: Read worklines in from stream
+                workline1 = "ABC123\t30\tAn item of work\tApps:M\t1.5\tTrack1\tMobile\t8\tB21,C23"
+                work = [workFromString workline1]
+                reqStaff = map (getRequiredStaff skills) work
+
+                result = show reqStaff
 
 
 --------------------------------------------------------------------------------

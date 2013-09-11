@@ -19,8 +19,11 @@
 module SkillAmount(
         Skill,
         SkillAmount(..),
+        NumStaff,
+        NumWeeks,
         skill',
         numval',
+        requiredStaff,
         fromVectorString,
         skillSum,
         skillDifference,
@@ -38,9 +41,8 @@ import Data.List.Split
 -- Data types
 --
 
---------------------------------------------------------------------------------
--- | Skills are named by String
---
+type NumWeeks = Float
+type NumStaff = Float
 type Skill = String
 
 --------------------------------------------------------------------------------
@@ -69,6 +71,20 @@ instance Show SkillAmount where
 -- =============================================================================
 -- Public API
 --
+
+
+--------------------------------------------------------------------------------
+-- | Returns num staff that can work on this at once and the num weeks each.
+--
+requiredStaff :: SkillAmount -> (NumStaff, NumWeeks)
+requiredStaff (SkillAmount _ strval _) = result
+        where
+                len = length strval
+                (factor_str, unit) = splitAt (len - 1) strval
+                factor = if factor_str == ""
+                                then 1
+                                else read factor_str :: Float
+                result = (factor, amount unit)
 
 --------------------------------------------------------------------------------
 -- | Reads multiple skill amounts from a string.
