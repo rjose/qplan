@@ -24,6 +24,7 @@ import StackStream
 import Work
 import Person
 import SkillAmount
+import Filters.Utils
 
 -- =============================================================================
 -- Data types
@@ -171,14 +172,13 @@ getTrackDemand trackWork skills = result
         where
                 result = [trackDemand | ws <- trackWork,
                            let triagedWork = map (selectTriage ws) triages
-                               trackDemand' = map (map (getMp skills)) triagedWork
+                               trackDemand' = map (map (getWorkManpower skills)) triagedWork
                                trackDemand'' = map sumManpower trackDemand'
                                trackDemand''' = map (conditionDemand len) trackDemand''
                                trackDemand = accManpower trackDemand'''
                          ]
                 selectTriage work tri = filter (\w -> tri == triage w) work
                 triages = [P1 .. P3]
-                getMp = flip getWorkManpower
                 len = length skills
 
 
@@ -236,11 +236,10 @@ getNetAvail manpower demand = result
 getTrackFeasibility :: [SkillName] -> TrackManpower -> TrackWork -> TrackFeasibility
 getTrackFeasibility skills manpower trackWork = result
         where
-                getMp = flip getWorkManpower
                 netAvail mp ds = tail $ scanl (zipWith (-)) mp ds
                 isFeasibile as ds = and $
                     zipWith (\a d -> if d > 0 && a < 0 then False else True) as ds
-                trackDemand = [map (getMp skills) ws| ws <- trackWork]
+                trackDemand = [map (getWorkManpower skills) ws| ws <- trackWork]
                 trackAvail = zipWith netAvail manpower trackDemand
                 result = zipWith (zipWith isFeasibile) trackAvail trackDemand
 
