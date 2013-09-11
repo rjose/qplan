@@ -1,9 +1,5 @@
 module Filters.Schedule
-        (
-         Availability,
-         filterString,
-         stringToDay,
-         getDays)
+        (filterString)
 where
 
 import Data.Maybe
@@ -11,11 +7,11 @@ import Data.Time.Calendar
 import Data.Time.Format
 import System.Locale
 
+import Filters.Schedule.Internal
+import Filters.Utils
 import Person
 import Work
-import Filters.Utils
 
-type Availability = [Float] -- List corresponding to num people availabile on a given day
 
 filterString :: String -> String
 filterString s = result
@@ -79,26 +75,6 @@ isWorkDay holidays day = result
                             then (day, False)
                             else (day, True)
 
---------------------------------------------------------------------------------
--- Converts string to day.
---
---      NOTE: If the conversion should fail, we bail.
---
-stringToDay :: String -> Day
-stringToDay s = result
-        where
-                dateFormat = "%b %e, %Y"
-                result = fromJust $ parseTime defaultTimeLocale dateFormat s
-
-
---------------------------------------------------------------------------------
--- Gets a list of dates from a start and end date (inclusive).
---
-getDays :: Day -> Day -> [Day]
-getDays start end
-        | start > end = []
-        | otherwise = start:getDays (addDays 1 start) end
-
 
 -- =============================================================================
 -- Test function
@@ -106,3 +82,4 @@ getDays start end
 test = do
         let result = filterString ""
         putStr result
+
