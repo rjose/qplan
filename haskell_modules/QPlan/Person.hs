@@ -4,6 +4,7 @@ module Person (
 
 import Data.List.Split
 import Data.Time.Calendar
+import Filters.Utils
 
 -- id, name, team, track, skill
 
@@ -14,7 +15,7 @@ data Person = Person { id :: Id,
                        team :: String,
                        track :: String,
                        skill :: String,
-                       holidays :: [Day]
+                       vacation :: [Day]
                      }
                      deriving (Show, Eq)
 
@@ -22,7 +23,7 @@ instance Ord Person where
         compare l r = compare (name l) (name r)
 
 personFromString :: String -> Person
-personFromString s = Person id name team track skill holidays
+personFromString s = Person id name team track skill vacation
         where
                 vals = splitOn "\t" s
                 id = vals !! 0
@@ -30,7 +31,7 @@ personFromString s = Person id name team track skill holidays
                 team = vals !! 2
                 track = vals !! 3
                 skill = vals !! 4
-                holidays = []
-
-personLine = "10\tMichael\tMobile\tMobilize\tNative"
-person = personFromString personLine
+                vacation' = splitOn ":" $ vals !! 5
+                vacation = if vacation' == [""]
+                                then []
+                                else map stringToDay vacation'

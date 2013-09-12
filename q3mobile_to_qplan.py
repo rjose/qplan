@@ -65,6 +65,8 @@ if "raw staff" in sections:
         tracks = condition_tracks(lines[0].split("\t")[:num_tracks+1])
         cur_skill = ""
 
+        # TODO: Pull vacation data in for each person
+        vacation = ""
         for line in lines[1:]:
             if (re.match("People in", line)):
                 break
@@ -74,7 +76,8 @@ if "raw staff" in sections:
             for i in range(1, num_tracks+1):
                 name = fields[i]
                 if (not skip_name(name)):
-                    print("\t%d\t%s\t%s\t%s\t%s" % (cur_id, name, "Mobile", tracks[i], cur_skill))
+                    print("\t%d\t%s\t%s\t%s\t%s\t%s" %
+                          (cur_id, name, "Mobile", tracks[i], cur_skill, vacation))
                     cur_id = cur_id + 1
 
 # id, name, estimate, triage, track, team, value, prereqs
