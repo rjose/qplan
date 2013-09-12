@@ -54,7 +54,7 @@ type TrackFeasibility = [[Bool]] -- List of tracks, each with bool list corresp.
 --      might come from a QPlan user.
 --
 filterString :: String -> String
-filterString s = if any isNothing [workStream, staffStream]
+filterString s = if any isNothing [workStream, staffStream, holidayStream]
                         then ""
                         else result
         where
@@ -62,11 +62,9 @@ filterString s = if any isNothing [workStream, staffStream]
 
                 workStream = find (("qplan work v1" ==) . header) streams
                 staffStream = find (("qplan staff v1" ==) . header) streams
+                holidayStream = find (("qplan holidays v1" ==) . header) streams
 
-                -- TODO: Read start, end, and holiday dates from stream
-                holidays' = ["Nov 28, 2013", "Nov 29, 2013", "Dec 25, 2013",
-                            "Dec 26, 2013", "Dec 27, 2013", "Dec 28, 2013", "Dec 29, 2013",
-                            "Dec 30, 2013", "Dec 31, 2013", "Jan 1, 2014"]
+                holidays = map stringToDay $ content $ fromJust holidayStream
                 startDate = stringToDay "Oct 7, 2013"
                 endDate = stringToDay "Jan 3, 2014"
 
@@ -88,7 +86,6 @@ filterString s = if any isNothing [workStream, staffStream]
 
                 -- Figure out staff availability by track
                 days = getDays startDate endDate
-                holidays = map stringToDay holidays'
                 workDays = map (isWorkDay holidays) days
 
                 schedSkills = ["Apps", "Native", "Web"]
@@ -96,9 +93,9 @@ filterString s = if any isNothing [workStream, staffStream]
 
                 trackDates = getTrackWorkDates schedSkills trackWork days trackStaffAvail
 
-                result = show $ trackDates !! 3
+                result = show $ holidays
+                --result = show $ trackDates !! 3
 
-                --result = show $ trackStaffAvail !! 0
 
 --                result = encode $ makeObj [
 --                  ("tracks", stringsToJSValue tracks),

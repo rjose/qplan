@@ -56,6 +56,14 @@ def condition_skill(skill):
             return skill
 
 
+# TODO: Parse out holidays from stream
+print("=====qplan holidays v1")
+holidays = ["Nov 28, 2013", "Nov 29, 2013", "Dec 25, 2013",
+            "Dec 26, 2013", "Dec 27, 2013", "Dec 28, 2013", "Dec 29, 2013",
+            "Dec 30, 2013", "Dec 31, 2013", "Jan 1, 2014"]
+for d in holidays:
+    print("\t%s" % d)
+
 # id, name, team, track, skill
 if "raw staff" in sections:
         cur_id = 1
@@ -101,3 +109,4 @@ if "raw work" in sections:
                 estimate = get_estimate_string(apps_est, native_est, web_est)
                 values = [id, rank, name, estimate, triage, track, team, value, prereqs]
                 print("\t%s" % "\t".join(values))
+
