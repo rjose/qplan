@@ -16,6 +16,7 @@ module Filters.QPlanApp (filterString) where
 
 import Control.Applicative
 import Data.List
+import Data.List.Split
 import Data.Maybe
 import Data.Time.Calendar
 import Data.Time.Format
@@ -54,7 +55,8 @@ type TrackFeasibility = [[Bool]] -- List of tracks, each with bool list corresp.
 --      might come from a QPlan user.
 --
 filterString :: String -> String
-filterString s = if any isNothing [workStream, staffStream, holidayStream]
+filterString s = if any isNothing [workStream, staffStream, holidayStream,
+                                   paramStream]
                         then ""
                         else result
         where
@@ -63,14 +65,13 @@ filterString s = if any isNothing [workStream, staffStream, holidayStream]
                 workStream = find (("qplan work v1" ==) . header) streams
                 staffStream = find (("qplan staff v1" ==) . header) streams
                 holidayStream = find (("qplan holidays v1" ==) . header) streams
+                paramStream = find (("qplan params v1" ==) . header) streams
 
                 holidays = map stringToDay $ content $ fromJust holidayStream
-                startDate = stringToDay "Oct 7, 2013"
-                endDate = stringToDay "Jan 3, 2014"
+                (startDate, endDate, numWeeks) = getParams $ fromJust paramStream
 
                 workItems = map workFromString $ content $ fromJust workStream
                 staff = sort $ map personFromString $ content $ fromJust staffStream
-                numWeeks = 13
 
                 -- All lists of tracks and skills are associated with these
                 tracks = getTracks staff workItems
@@ -93,7 +94,7 @@ filterString s = if any isNothing [workStream, staffStream, holidayStream]
 
                 trackDates = getTrackWorkDates schedSkills trackWork days trackStaffAvail
 
-                result = show $ holidays
+                result = show (startDate, endDate, numWeeks)
                 --result = show $ trackDates !! 3
 
 
@@ -109,6 +110,17 @@ filterString s = if any isNothing [workStream, staffStream, holidayStream]
 -- =============================================================================
 -- Internal functions
 --
+
+getParams :: Stream -> (Day, Day, Float)
+getParams (Stream _ ls) = result
+        where
+                params = splitOn "\t" (head ls)
+                startDate = stringToDay $ params !! 0
+                endDate = stringToDay $ params !! 1
+                numDays = fromInteger ((diffDays endDate startDate) + 1) :: Float
+                numWeeks = numDays / 7.0
+                result = (startDate, endDate, (fromInteger $ round numWeeks) :: Float)
+
 
 getTrackWorkDates :: [SkillName] -> TrackWork -> [Day] -> [SkillAvailabilities] ->
                      [[Maybe Day]]

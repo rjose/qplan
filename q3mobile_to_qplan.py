@@ -64,6 +64,10 @@ holidays = ["Nov 28, 2013", "Nov 29, 2013", "Dec 25, 2013",
 for d in holidays:
     print("\t%s" % d)
 
+# TODO: Have script generate params (use commandline?)
+print("=====qplan params v1")
+print("\t%s\t%s" % ("Oct 7, 2013", "Jan 3, 2014"))
+
 # id, name, team, track, skill
 if "raw staff" in sections:
         cur_id = 1
