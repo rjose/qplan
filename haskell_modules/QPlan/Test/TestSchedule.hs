@@ -14,13 +14,20 @@ import Work
 
 testScheduleWork :: Assertion
 testScheduleWork = do
-        assertEqual "No work" [] (schedule [] schedAvail)
-        assertEqual "1 item, 1 skill" [Just oct4] (schedule [w1] schedAvail)
-        assertEqual "2 items, 1 skill" [Just oct4, Just oct9] (schedule ws1 schedAvail)
-        assertEqual "2 skills" [Just oct11] (schedule ws2 schedAvail)
-        assertEqual "2 skill, then 1" [Just oct11, Just oct9] (schedule ws3 schedAvail)
-        assertEqual "5 in parallel" [Just oct10] (schedule [w3] schedAvail)
-        assertEqual "Push w3 out" [Just oct11, Just oct18] (schedule [w2, w3] schedAvail)
+        assertEqual "No work" []
+                (schedule skills [] schedAvail)
+        assertEqual "1 item, 1 skill" [Just oct4]
+                (schedule skills [w1] schedAvail)
+        assertEqual "2 items, 1 skill" [Just oct4, Just oct9]
+                (schedule skills ws1 schedAvail)
+        assertEqual "2 skills" [Just oct11]
+                (schedule skills ws2 schedAvail)
+        assertEqual "2 skill, then 1" [Just oct11, Just oct9]
+                (schedule skills ws3 schedAvail)
+        assertEqual "5 in parallel" [Just oct10]
+                (schedule skills [w3] schedAvail)
+        assertEqual "Push w3 out" [Just oct11, Just oct18]
+                (schedule skills [w2, w3] schedAvail)
         where
                 startDate = stringToDay "Sep 29, 2013"
                 endDate = stringToDay "Oct 31, 2013"
@@ -47,13 +54,6 @@ testScheduleWork = do
                                     take (length days) $ cycle nativeWorkweek,
                                     take (length days) $ cycle webWorkweek
                                     ])
-
-                schedule work avail = result'
-                        where
-                                (result', _) = runState (schedule' work) avail
-                                schedule' work' = do
-                                        ds <- mapM (state . scheduleWork skills) work'
-                                        return ds
 
 
 

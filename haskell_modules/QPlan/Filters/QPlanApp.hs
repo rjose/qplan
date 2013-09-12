@@ -14,17 +14,21 @@
 -----------------------------------------------------------------------------
 module Filters.QPlanApp (filterString) where
 
+import Control.Applicative
 import Data.List
 import Data.Maybe
-import Text.JSON
-import Control.Applicative
+import Data.Time.Calendar
+import Data.Time.Format
 import qualified Data.Set as Set
+import System.Locale
+import Text.JSON
 
-import StackStream
-import Work
+import Filters.Schedule.Internal
+import Filters.Utils
 import Person
 import SkillAmount
-import Filters.Utils
+import StackStream
+import Work
 
 -- =============================================================================
 -- Data types
@@ -59,10 +63,18 @@ filterString s = if any isNothing [workStream, staffStream]
                 workStream = find (("qplan work v1" ==) . header) streams
                 staffStream = find (("qplan staff v1" ==) . header) streams
 
+                -- TODO: Read start, end, and holiday dates from stream
+                holidays' = ["Nov 28, 2013", "Nov 29, 2013", "Dec 25, 2013",
+                            "Dec 26, 2013", "Dec 27, 2013", "Dec 28, 2013", "Dec 29, 2013",
+                            "Dec 30, 2013", "Dec 31, 2013", "Jan 1, 2014"]
+                startDate = stringToDay "Oct 7, 2013"
+                endDate = stringToDay "Jan 3, 2014"
+
                 workItems = map workFromString $ content $ fromJust workStream
                 staff = sort $ map personFromString $ content $ fromJust staffStream
                 numWeeks = 13
 
+                -- All lists of tracks and skills are associated with these
                 tracks = getTracks staff workItems
                 skills = getSkills staff workItems
 
@@ -74,18 +86,62 @@ filterString s = if any isNothing [workStream, staffStream]
                 trackAvail = getNetAvail trackManpower trackDemand
                 trackFeasibility = getTrackFeasibility skills trackManpower trackWork
 
-                result = encode $ makeObj [
-                  ("tracks", stringsToJSValue tracks),
-                  ("skills", stringsToJSValue skills),
-                  ("triages", stringsToJSValue $ map show [P1 .. P3]),
-                  ("track_stats", trackStatsToJSValue trackManpower trackDemand trackAvail),
-                  ("track_staff", trackStaffToJSValue trackStaff),
-                  ("track_work", trackWorkToJSValue trackWork trackFeasibility) ]
+                -- Figure out staff availability by track
+                days = getDays startDate endDate
+                holidays = map stringToDay holidays'
+                workDays = map (isWorkDay holidays) days
+
+                schedSkills = ["Apps", "Native", "Web"]
+                trackStaffAvail = getTrackStaffAvail skills schedSkills workDays trackStaff
+
+                trackDates = getTrackWorkDates schedSkills trackWork days trackStaffAvail
+
+                result = show $ trackDates !! 3
+
+                --result = show $ trackStaffAvail !! 0
+
+--                result = encode $ makeObj [
+--                  ("tracks", stringsToJSValue tracks),
+--                  ("skills", stringsToJSValue skills),
+--                  ("triages", stringsToJSValue $ map show [P1 .. P3]),
+--                  ("track_stats", trackStatsToJSValue trackManpower trackDemand trackAvail),
+--                  ("track_staff", trackStaffToJSValue trackStaff),
+--                  ("track_work", trackWorkToJSValue trackWork trackFeasibility) ]
 
 
 -- =============================================================================
 -- Internal functions
 --
+
+getTrackWorkDates :: [SkillName] -> TrackWork -> [Day] -> [SkillAvailabilities] ->
+                     [[Maybe Day]]
+getTrackWorkDates skills trackWork days trackStaffAvail = result
+        where
+                schedAvails = map (\avail -> (days, avail)) trackStaffAvail
+                result = zipWith (schedule skills) trackWork schedAvails
+
+
+
+getTrackStaffAvail :: [SkillName] -> [SkillName] -> [(Day, Bool)] -> TrackStaff ->
+                      [SkillAvailabilities]
+getTrackStaffAvail allSkills skills isWorkdays trackStaff = result
+        where
+                result = [avail | skillGroups <- trackStaff,
+                                let
+                                skillGroups' = filterSkills allSkills skills skillGroups
+                                getAvail = sumAvailability . map (getAvailability isWorkdays)
+                                avail = map getAvail skillGroups'
+                         ]
+
+filterSkills :: [SkillName] -> [SkillName] -> [a] -> [a]
+filterSkills allSkills selectSkills items = result
+        where
+                pairs = zip allSkills items
+                f acc p = if (fst p) `elem` selectSkills
+                                then (snd p):acc
+                                else acc
+                result = foldl f [] pairs
+
 
 --------------------------------------------------------------------------------
 -- Takes union of tracks from a list of people and work items.
@@ -321,3 +377,9 @@ workToJSValue w isFeasible = makeObj [
 personToJSValue :: Person -> JSValue
 personToJSValue p = makeObj [
         ("name", JSString $ toJSString $ Person.name p) ]
+
+
+test = do
+        content <- readFile "_qplan.txt"
+        let result = filterString content
+        putStr result

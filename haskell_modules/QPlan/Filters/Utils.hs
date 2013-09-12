@@ -1,12 +1,31 @@
-module Filters.Utils
-        (getWorkManpower,
-         getRequiredStaff)
-where
+module Filters.Utils where
 
 import Data.List
 import Data.Maybe
+import Data.Time.Calendar
+import Data.Time.Format
+import System.Locale
 
 import Work
+
+--------------------------------------------------------------------------------
+-- Converts string to day.
+--
+--      NOTE: If the conversion should fail, we bail.
+--
+stringToDay :: String -> Day
+stringToDay s = result
+        where
+                dateFormat = "%b %e, %Y"
+                result = fromJust $ parseTime defaultTimeLocale dateFormat s
+
+--------------------------------------------------------------------------------
+-- Gets a list of dates from a start and end date (inclusive).
+--
+getDays :: Day -> Day -> [Day]
+getDays start end
+        | start > end = []
+        | otherwise = start:getDays (addDays 1 start) end
 
 
 getRequiredStaff :: [String] -> Work -> [(NumStaff, NumWeeks)]

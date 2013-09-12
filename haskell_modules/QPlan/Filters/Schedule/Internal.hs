@@ -4,13 +4,57 @@ import Data.Maybe
 import Data.Time.Calendar
 import Data.Time.Format
 import System.Locale
+import Control.Monad.State
 
 import Filters.Utils
+import Person
 import Work
 
 type Availability = [Float] -- List corresponding to num people availabile on a given day
 type SkillAvailabilities = [Availability]
 type SchedAvail = ([Day], SkillAvailabilities)
+
+
+--------------------------------------------------------------------------------
+-- Sums availabilities.
+--
+sumAvailability :: [Availability] -> Availability
+sumAvailability [] = []
+sumAvailability (a:as) = foldr (zipWith (+)) a as
+
+--------------------------------------------------------------------------------
+-- Returns a person's availability given team work days.
+--
+getAvailability :: [(Day, Bool)] -> Person -> Availability
+getAvailability workdays person = result
+        where
+                unavailDays = vacation person
+                avail uds wd = if or [(fst wd) `elem` uds, snd wd == False]
+                                 then 0
+                                 else 1
+                result = map (avail unavailDays) workdays
+
+
+--------------------------------------------------------------------------------
+-- Given a set of holidays and a day, returns if day is a workday
+--
+isWorkDay :: [Day] -> Day -> (Day, Bool)
+isWorkDay holidays day = result
+        where
+                dayOfWeek = formatTime defaultTimeLocale "%a" day
+                weekdays = ["Sat", "Sun"]
+                result = if or [(dayOfWeek `elem` weekdays), (day `elem` holidays)]
+                            then (day, False)
+                            else (day, True)
+
+
+schedule :: [String] -> [Work] -> SchedAvail -> [Maybe Day]
+schedule skills work schedAvail = result
+        where
+                (result, _) = runState (sched work) schedAvail
+                sched ws = do
+                        ds <- mapM (state . scheduleWork skills) ws
+                        return ds
 
 scheduleWork :: [String] -> Work -> SchedAvail -> (Maybe Day, SchedAvail)
 scheduleWork skills work (days, skillAvails) = result
@@ -38,23 +82,4 @@ consume avail newAvail startIndex (maxPerSlot, numDays)
         where
                 amt = minimum [(head avail), maxPerSlot, numDays] 
                 h = (head avail) - amt
-
---------------------------------------------------------------------------------
--- Converts string to day.
---
---      NOTE: If the conversion should fail, we bail.
---
-stringToDay :: String -> Day
-stringToDay s = result
-        where
-                dateFormat = "%b %e, %Y"
-                result = fromJust $ parseTime defaultTimeLocale dateFormat s
-
---------------------------------------------------------------------------------
--- Gets a list of dates from a start and end date (inclusive).
---
-getDays :: Day -> Day -> [Day]
-getDays start end
-        | start > end = []
-        | otherwise = start:getDays (addDays 1 start) end
 

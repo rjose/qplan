@@ -5,9 +5,10 @@ import Test.HUnit
 
 import StackStream
 
+import Test.TestPerson
+import Test.TestSchedule
 import Test.TestSkillAmount
 import Test.TestWork
-import Test.TestSchedule
 
 main :: IO ()
 main = defaultMainWithOpts
@@ -16,6 +17,7 @@ main = defaultMainWithOpts
           testCase "TestSkillAmount" testSkillAmount,
           testCase "TestWork" testWork,
           testCase "TestSchedule" testSchedule
+          testCase "TestPerson" testPerson
         ] mempty
 
 testRev :: Assertion

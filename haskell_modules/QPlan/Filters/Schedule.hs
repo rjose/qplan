@@ -23,10 +23,9 @@ filterString s = result
                 startDate = stringToDay "Oct 7, 2013"
                 endDate = stringToDay "Jan 3, 2014"
 
-                -- TODO: Read this in from stream
+                -- TODO: Read people and their vacations from stream
                 oct10 = stringToDay "Oct 10, 2013"
-                appsStaff = [(Person "1" "Person1" "Mobile" "Track1" "Apps" [oct10]),
-                             (Person "2" "Person2" "Mobile" "Track1" "Apps" [])]
+                appsStaff = [(Person "1" "Person1" "Mobile" "Track1" "Apps" [oct10]) ]
 
                 days = getDays startDate endDate
                 holidays = map stringToDay holidays'
@@ -34,46 +33,18 @@ filterString s = result
 
                 skills = ["Apps"]
                 appsAvail = sumAvailability $ map (getAvailability workDays) appsStaff
-                skillsAvail = [appsAvail]
+
+                schedAvail = (days, [appsAvail])
 
                 -- TODO: Read worklines in from stream
-                workline1 = "ABC123\t30\tAn item of work\tApps:M\t1.5\tTrack1\tMobile\t8\tB21,C23"
+                workline1 = "3\t30\twork\tApps:M\t1.5\tTrack1\tMobile\t8\tC23"
                 work = [workFromString workline1]
-                reqStaff = map (getRequiredStaff skills) work
 
-                result = show reqStaff
+                estDates = schedule skills work schedAvail
+
+                result = show estDates
 
 
---------------------------------------------------------------------------------
--- Sums availabilities.
---
-sumAvailability :: [Availability] -> Availability
-sumAvailability [] = []
-sumAvailability (a:as) = foldr (zipWith (+)) a as
-
---------------------------------------------------------------------------------
--- Returns a person's availability given team work days.
---
-getAvailability :: [(Day, Bool)] -> Person -> Availability
-getAvailability workdays person = result
-        where
-                unavailDays = holidays person
-                avail uds wd = if or [(fst wd) `elem` uds, snd wd == False]
-                                 then 0
-                                 else 1
-                result = map (avail unavailDays) workdays
-
---------------------------------------------------------------------------------
--- Given a set of holidays and a day, returns if day is a workday
---
-isWorkDay :: [Day] -> Day -> (Day, Bool)
-isWorkDay holidays day = result
-        where
-                dayOfWeek = formatTime defaultTimeLocale "%a" day
-                weekdays = ["Sat", "Sun"]
-                result = if or [(dayOfWeek `elem` weekdays), (day `elem` holidays)]
-                            then (day, False)
-                            else (day, True)
 
 
 -- =============================================================================
