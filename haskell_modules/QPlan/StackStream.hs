@@ -17,6 +17,7 @@
 -- Module definition
 --
 module StackStream (
+        stack,
         unstack,
         Stream(..)
 ) where
@@ -29,6 +30,7 @@ import Data.List
 import Data.Maybe
 import Control.Monad.State
 import Control.Monad
+import Filters.Utils
 
 
 -- =============================================================================
@@ -50,6 +52,11 @@ data Stream
 -- =============================================================================
 -- Public API
 --
+
+stack :: [Stream] -> [String]
+stack [] = []
+stack ((Stream h c):ss) = concat [["=====" ++ h], (map addTab c), stack ss]
+
 
 --------------------------------------------------------------------------------
 -- | Translates a stacked stream into its components.
@@ -96,5 +103,3 @@ getStream [] = (EmptyStream, [])
 --
 nextState :: State [String] Stream
 nextState = state $ getStream
-
-
