@@ -234,10 +234,10 @@ filterSkills :: [SkillName] -> [SkillName] -> [a] -> [a]
 filterSkills allSkills selectSkills items = result
         where
                 pairs = zip allSkills items
-                f acc p = if (fst p) `elem` selectSkills
+                f p acc = if (fst p) `elem` selectSkills
                                 then (snd p):acc
                                 else acc
-                result = foldl f [] pairs
+                result = foldr f [] pairs
 
 
 --------------------------------------------------------------------------------
