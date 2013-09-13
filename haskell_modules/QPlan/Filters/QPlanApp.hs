@@ -151,6 +151,7 @@ getSkillStream people = result
                 result = ["=====qplan skill item"] ++
                         map addTab [Person.name p | p <- people]
 
+-- TODO: Get rid of this?
 packStream :: Stream -> [String]
 packStream (Stream header content) = result
         where
@@ -163,16 +164,6 @@ getTriageStream manpower = result
                         [addTab l | mp <- manpower,
                                 let l = joinWith "\t" $ map show mp]
 
-
--- TODO: Move some of these functions to Utils
-joinWith :: String -> [String] -> String
-joinWith _ [] = []
-joinWith _ [w] = w
-joinWith c (w:ws) = w ++ c ++ (joinWith c ws)
-
-
-addTab :: String -> String
-addTab s = "\t" ++ s
 
 getParams :: Stream -> (Day, Day, Float, String)
 getParams (Stream _ ls) = (startDate, endDate, (fromInteger $ round numWeeks), schedStr)

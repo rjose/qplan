@@ -58,3 +58,12 @@ getWorkManpower skills work = result
                                           then 0
                                           else numval' $ fromJust manpower'
                          ]
+
+joinWith :: String -> [String] -> String
+joinWith _ [] = []
+joinWith _ [w] = w
+joinWith c (w:ws) = w ++ c ++ (joinWith c ws)
+
+
+addTab :: String -> String
+addTab s = "\t" ++ s
