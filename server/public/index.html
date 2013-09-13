@@ -74,9 +74,9 @@
             <tr>
                <th class='field-rank'>Rank</th>
                <th class='field-triage'>Tri.</th>
-               <th class='field-track'>Track</th>
                <th class='field-item'>Item</th>
                <th class='field-estimates'>Estimates</th>
+               <th class='field-est-complete'>Est. Complete</th>
             </tr>
 
             <tr ng-repeat='work in work_items'
@@ -84,9 +84,9 @@
                in-triage-{{work.triage <= triage}}'>
                <td class='field-rank'>#{{work.rank}}</td>
                <td class='field-triage'>{{work.triage}}</td>
-               <td class='field-track'>{{work.track}}</td>
                <td class='field-item'>{{work.name}}</td>
                <td class='field-estimates'>{{work.estimate}}</td>
+               <td class='field-est-complete'>{{work.end_date.split(",")[0]}}</td>
             </tr>
          </table>
          </section>

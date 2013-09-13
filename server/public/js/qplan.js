@@ -34,7 +34,7 @@ qplanModule.controller("QPlanCtrl",
       $scope.update = function(track, triage) {
          $http.get('/app/web/qplan?triage=' + triage + "&track=" + track).then(
          function(res) {
-            var numWeeks = 13; // TODO: Get this from the server
+            var numWeeks = res.data.num_weeks;
             $scope.tracks = res.data.tracks;
             $scope.skills = res.data.skills;
             $scope.track_stats = toNumPeople(res.data.track_stats, numWeeks)

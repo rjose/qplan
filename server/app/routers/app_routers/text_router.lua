@@ -1,4 +1,4 @@
-local Tags = require('tags')
+local Tags = require('field_tags')
 local RequestRouter = require('request_router')
 
 --==============================================================================

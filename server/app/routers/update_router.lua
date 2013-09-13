@@ -1,6 +1,7 @@
 require('string_utils')
 local RequestRouter = require('request_router')
 local Json = require('json')
+local QPlanParser = require('qplan_parser')
 
 --==============================================================================
 -- Local declarations
@@ -31,9 +32,10 @@ function UpdateRouter.router(req)
                 -- Looking for POSTs to /qplan
                 resource = req.path_pieces[RESOURCE_INDEX]
                 if resource == 'qplan' then
-                        req.qplan.data = Json.decode(req.body)
+                        req.qplan.data = QPlanParser.parseLines(req.body:split("\n"))
+                        --req.qplan.data = Json.decode(req.body)
                         add_qplan_lookup_tables(req.qplan)
-                        io.stderr:write("Finished updating qplan data")
+                        io.stderr:write("Finished updating qplan data\n")
 
                         return RequestRouter.construct_response(200,
                                                          "application/text", "")
