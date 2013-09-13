@@ -57,69 +57,157 @@ type TrackFeasibility = [[Bool]] -- List of tracks, each with bool list corresp.
 filterString :: String -> String
 filterString s = if any isNothing [workStream, staffStream, holidayStream,
                                    paramStream]
-                        then ""
+                        then error "One of the input streams was missing"
                         else result
         where
+                -- Unstack the input streams
                 streams = unstack $ lines s
-
                 workStream = find (("qplan work v1" ==) . header) streams
                 staffStream = find (("qplan staff v1" ==) . header) streams
                 holidayStream = find (("qplan holidays v1" ==) . header) streams
                 paramStream = find (("qplan params v1" ==) . header) streams
 
+                -- Parse info out of streams
+                (startDate, endDate, numWeeks, schedSkillStr) =
+                                                getParams $ fromJust paramStream
                 holidays = map stringToDay $ content $ fromJust holidayStream
-                (startDate, endDate, numWeeks) = getParams $ fromJust paramStream
-
                 workItems = map workFromString $ content $ fromJust workStream
                 staff = sort $ map personFromString $ content $ fromJust staffStream
 
-                -- All lists of tracks and skills are associated with these
+                -- Define "master lists"
+                --
+                --      Any list organized by track, skill, or time will
+                --      correspond directly to these lists.
                 tracks = getTracks staff workItems
                 skills = getSkills staff workItems
+                days = getDays startDate endDate
+                triages = map show [P1 .. P3]
 
+                -- Group work and staff into tracks
                 trackWork = workByTrack tracks workItems
                 trackStaff = staffByTrackSkills tracks skills staff
 
+                -- Compute resource demand and feasibility
                 trackManpower = getManpower (\p -> numWeeks) trackStaff
                 trackDemand = getTrackDemand trackWork skills
                 trackAvail = getNetAvail trackManpower trackDemand
                 trackFeasibility = getTrackFeasibility skills trackManpower trackWork
 
-                -- Figure out staff availability by track
-                days = getDays startDate endDate
+                -- Schedule work based on track assignments
+                schedSkills = splitOn ":" schedSkillStr
                 workDays = map (isWorkDay holidays) days
-
-                schedSkills = ["Apps", "Native", "Web"]
                 trackStaffAvail = getTrackStaffAvail skills schedSkills workDays trackStaff
-
                 trackDates = getTrackWorkDates schedSkills trackWork days trackStaffAvail
 
-                result = show (startDate, endDate, numWeeks)
-                --result = show $ trackDates !! 3
+                -- Generate result
+                trackStream = ["=====qplan tracks v1"] ++ (map addTab tracks)
+                skillStream = ["=====qplan skills v1"] ++ (map addTab skills)
+                triageStream = ["=====qplan triages v1"] ++ (map addTab triages)
 
+                manpowerStream = ["=====qplan track manpower v1"] ++
+                        [addTab l | mp <- trackManpower,
+                                let l = joinWith "\t" $ map show mp]
 
---                result = encode $ makeObj [
---                  ("tracks", stringsToJSValue tracks),
---                  ("skills", stringsToJSValue skills),
---                  ("triages", stringsToJSValue $ map show [P1 .. P3]),
---                  ("track_stats", trackStatsToJSValue trackManpower trackDemand trackAvail),
---                  ("track_staff", trackStaffToJSValue trackStaff),
---                  ("track_work", trackWorkToJSValue trackWork trackFeasibility) ]
+                trackDemandStream = ["=====qplan track-triage demand v1"] ++
+                        map addTab (concat [getTriageStream d | d <- trackDemand])
+
+                trackStaffStream = ["=====qplan track-skill staff v1"] ++
+                        map addTab (concat [getTrackGroupStream s | s <- trackStaff])
+
+                trackWork' = zip3 trackWork trackFeasibility trackDates
+                trackWorkStream = ["=====qplan track work v1"] ++
+                        map addTab (concat [getWorkStream ws | ws <- trackWork'])
+
+                -- TODO: See if there's a more Haskell-y way to do this
+                result = unlines $ concat [packStream $ fromJust paramStream,
+                                           trackStream, skillStream, triageStream,
+                                           manpowerStream, trackDemandStream,
+                                           trackStaffStream, trackWorkStream]
+
 
 
 -- =============================================================================
 -- Internal functions
 --
 
-getParams :: Stream -> (Day, Day, Float)
+getWorkStream :: ([Work], [Bool], [Maybe Day]) -> [String]
+getWorkStream (ws, fs, ds) = result
+        where
+                result = ["=====qplan track item"] ++
+                        map addTab (zipWith3 format ws fs ds)
+                format w f d = joinWith "\t" [Work.track w, show $ rank w, show $ triage w,
+                                              Work.name w, formatEstimate $ estimate w,
+                                              show f, formatDay d]
+                formatDay d = if isNothing d
+                                then "DNF"
+                                else dayToString $ fromJust d
+
+
+
+getTrackGroupStream :: [[Person]] -> [String]
+getTrackGroupStream skillGroup = result
+        where
+                result = ["=====qplan track item"] ++
+                        map addTab (concat [getSkillStream people | people <- skillGroup])
+
+getSkillStream :: [Person] -> [String]
+getSkillStream people = result
+        where
+                result = ["=====qplan skill item"] ++
+                        map addTab [Person.name p | p <- people]
+
+packStream :: Stream -> [String]
+packStream (Stream header content) = result
+        where
+                result = ["=====" ++ header] ++ (map addTab content)
+
+getTriageStream :: TrackManpower -> [String]
+getTriageStream manpower = result
+        where
+                result = ["=====qplan triage item"] ++
+                        [addTab l | mp <- manpower,
+                                let l = joinWith "\t" $ map show mp]
+
+
+joinWith :: String -> [String] -> String
+joinWith _ [] = []
+joinWith _ [w] = w
+joinWith c (w:ws) = w ++ c ++ (joinWith c ws)
+
+
+-- =====qplan track-triage demand v1
+--      =====qplan triage v1
+--              1 2 1 1
+--              2 2 2 2
+--              4 3 2 3
+--              4 3 2 3
+--      =====qplan triage v1
+--              1 2 1 1
+--              2 2 2 2
+--              4 3 2 3
+--              4 3 2 3
+--
+
+
+
+
+addTab :: String -> String
+addTab s = "\t" ++ s
+
+getParams :: Stream -> (Day, Day, Float, String)
 getParams (Stream _ ls) = result
         where
                 params = splitOn "\t" (head ls)
                 startDate = stringToDay $ params !! 0
                 endDate = stringToDay $ params !! 1
+                schedStr = params !! 2
                 numDays = fromInteger ((diffDays endDate startDate) + 1) :: Float
                 numWeeks = numDays / 7.0
-                result = (startDate, endDate, (fromInteger $ round numWeeks) :: Float)
+                result = (startDate,
+                          endDate,
+                          (fromInteger $ round numWeeks) :: Float,
+                          schedStr
+                         )
 
 
 getTrackWorkDates :: [SkillName] -> TrackWork -> [Day] -> [SkillAvailabilities] ->

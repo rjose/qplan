@@ -8,16 +8,19 @@ import System.Locale
 
 import Work
 
+dateFormat :: String
+dateFormat = "%b %e, %Y"
+
+dayToString :: Day -> String
+dayToString d = formatTime defaultTimeLocale dateFormat d
+
 --------------------------------------------------------------------------------
 -- Converts string to day.
 --
 --      NOTE: If the conversion should fail, we bail.
 --
 stringToDay :: String -> Day
-stringToDay s = result
-        where
-                dateFormat = "%b %e, %Y"
-                result = fromJust $ parseTime defaultTimeLocale dateFormat s
+stringToDay s = fromJust $ parseTime defaultTimeLocale dateFormat s
 
 --------------------------------------------------------------------------------
 -- Gets a list of dates from a start and end date (inclusive).

@@ -66,7 +66,7 @@ for d in holidays:
 
 # TODO: Have script generate params (use commandline?)
 print("=====qplan params v1")
-print("\t%s\t%s" % ("Oct 7, 2013", "Jan 3, 2014"))
+print("\t%s\t%s\t%s" % ("Oct 7, 2013", "Jan 3, 2014", "Apps:Native:Web"))
 
 # id, name, team, track, skill
 if "raw staff" in sections:

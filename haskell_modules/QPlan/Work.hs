@@ -16,6 +16,7 @@ module Work(
         Triage(..),
         Work(..),
         workFromString,
+        formatEstimate,
         module SkillAmount
 ) where
 
@@ -71,6 +72,9 @@ data Work
 -- =============================================================================
 -- Public API
 --
+
+formatEstimate :: [Estimate] -> String
+formatEstimate est = intercalate ", " $ map show est
 
 --------------------------------------------------------------------------------
 -- | Constructs a work item from an input string.
