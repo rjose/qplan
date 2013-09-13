@@ -22,9 +22,10 @@ end
 function handleParamsStream(stream, out_data)
         local line = stream.lines[1]
         local fields = line:split("\t")
-        out_data.start_date = parseDate(fields[1])
-        out_data.end_date = parseDate(fields[2])
-        out_data.num_weeks = diffDays(out_data.end_date, out_data.start_date) / 7.0
+        out_data.start_date = fields[1]
+        out_data.end_date = fields[2]
+        out_data.num_weeks = diffDays(parseDate(out_data.end_date),
+                                      parseDate(out_data.start_date)) / 7.0
 end
 
 function stringArrayFromStream(stream)
