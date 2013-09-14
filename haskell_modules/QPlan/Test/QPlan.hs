@@ -16,7 +16,7 @@ main = defaultMainWithOpts
           testCase "unstack" test_unstack,
           testCase "TestSkillAmount" testSkillAmount,
           testCase "TestWork" testWork,
-          testCase "TestSchedule" testSchedule
+          testCase "TestSchedule" testSchedule,
           testCase "TestPerson" testPerson
         ] mempty
 
