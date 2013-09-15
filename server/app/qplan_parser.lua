@@ -99,7 +99,12 @@ function handleTrackWork(stream, out_data)
                         w.name = fields[4]
                         w.estimate = fields[5]
                         w.feasible = fields[6] == "True"
-                        w.end_date = fields[7]
+                        -- For items in the "All" track override date
+                        if #trackGroups == 0 then
+                                w.end_date = "See track"
+                        else
+                                w.end_date = fields[7]
+                        end
 
                         workItems[#workItems+1] = w
                 end

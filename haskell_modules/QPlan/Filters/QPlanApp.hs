@@ -84,13 +84,15 @@ filterString s = if any isNothing [workStream, staffStream, holidayStream,
                 trackStaff = staffByTrackSkills tracks skills staff
 
                 -- Compute resource demand and feasibility
-                trackManpower = getManpower (\p -> numWeeks) trackStaff
+                workDays = map (isWorkDay holidays) days
+                trackStaffAvail = getTrackStaffAvail skills schedSkills workDays trackStaff
+                trackManpower' = getManpower (\p -> numWeeks) trackStaff
+                trackManpower = adjustManpower skills trackManpower'
+                                               schedSkills trackStaffAvail
                 trackDemand = getTrackDemand trackWork skills
                 trackFeasibility = getTrackFeasibility skills trackManpower trackWork
 
                 -- Schedule work based on track assignments
-                workDays = map (isWorkDay holidays) days
-                trackStaffAvail = getTrackStaffAvail skills schedSkills workDays trackStaff
                 trackDates = getTrackWorkDates schedSkills trackWork days trackStaffAvail
 
                 -- Generate result
@@ -119,6 +121,25 @@ filterString s = if any isNothing [workStream, staffStream, holidayStream,
 -- =============================================================================
 -- Internal functions
 --
+
+-- Not the best algo, but oh well.
+adjustManpower :: [SkillName] -> TrackManpower -> [SkillName] ->
+                  [SkillAvailabilities] -> TrackManpower
+adjustManpower skills mp schedSkills avail = result
+        where
+                smp = [map (foldl (\a x -> a + (x/5.0)) 0) skillGroups |
+                        skillGroups <- avail]
+                result = zipWith f mp smp
+                f skillGroup skillGroup' = result'
+                        where
+                        mp' = zip skills skillGroup
+                        smp' = zip schedSkills skillGroup'
+                        result' = [m | s <- skills,
+                            let m' = lookup s smp'
+                                m = if isNothing m'
+                                        then fromJust $ lookup s mp'
+                                        else fromJust m']
+
 
 getWorkStream :: ([Work], [Bool], [Maybe Day]) -> Stream
 getWorkStream (ws, fs, ds) = result
@@ -333,6 +354,6 @@ getTrackFeasibility skills manpower trackWork = result
                 result = zipWith (zipWith isFeasibile) trackAvail trackDemand
 
 test = do
-        content <- readFile "_qplan.txt"
+        content <- readFile "_q4plan.txt"
         let result = filterString content
         putStr result
