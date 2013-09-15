@@ -1,13 +1,31 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Person
+-- Copyright   :  (c) Rino Jose 2013
+-- License     :  BSD-style
+--
+-- Maintainer  :  @rjose
+-- Stability   :  experimental
+-- Portability :  portable
+--
+-- Provides parsing of person items.
+--
+-----------------------------------------------------------------------------
+
 module Person (
         Person(..),
-        personFromString) where
+        personFromString
+) where
 
 import Data.List.Split
 import Data.Time.Calendar
+
 import Filters.Utils
 
--- id, name, team, track, skill
 
+-- =============================================================================
+-- Data types
+--
 type Id = String
 
 data Person = Person { id :: Id,
@@ -22,6 +40,14 @@ data Person = Person { id :: Id,
 instance Ord Person where
         compare l r = compare (name l) (name r)
 
+
+-- =============================================================================
+-- Public API
+--
+
+--------------------------------------------------------------------------------
+-- | Constructs Person from string.
+--
 personFromString :: String -> Person
 personFromString s = Person id name team track skill vacation
         where
