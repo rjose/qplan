@@ -134,148 +134,6 @@ filterString s = if any isNothing [workStream, staffStream, holidayStream, param
                                           trackStaffStream, trackWorkStream]
 
 
-
--- =============================================================================
--- Internal functions -- Output stream generation
---
-
---------------------------------------------------------------------------------
--- Constructs stream of work data.
---
-getWorkStream :: ([Work], [Bool], [Maybe Day]) -> Stream
-getWorkStream (ws, fs, ds) = result
-        where
-                result = Stream "qplan track item" (zipWith3 format ws fs ds)
-                format w f d = joinWith "\t" [Work.track w,
-                                              show $ rank w,
-                                              show $ triage w,
-                                              Work.name w,
-                                              formatEstimate $ estimate w,
-                                              show f,
-                                              formatDay d]
-                formatDay d = if isNothing d
-                                then "DNF"
-                                else dayToString $ fromJust d
-
-
---------------------------------------------------------------------------------
--- Constructs stream of tracks.
---
---      Every list of items by tracks corresponds to these tracks in the same
---      order.
---
-getTrackGroupStream :: [[Person]] -> Stream
-getTrackGroupStream skillGroup = result
-        where
-                result = Stream "qplan track item" $ stack (map getSkillStream skillGroup)
-
-
---------------------------------------------------------------------------------
--- Constructs stream of skills.
---
---      Every list of items by skills corresponds to these skills in the same
---      order.
---
-getSkillStream :: [Person] -> Stream
-getSkillStream people = result
-        where
-                result = Stream "qplan skill item" (map Person.name people)
-
---------------------------------------------------------------------------------
--- Constructs stream of triages.
---
---      Every list of items by triage corresponds to these triage items in the
---      same order.
---
-getTriageStream :: TrackManpower -> Stream
-getTriageStream manpower = result
-        where
-                result = Stream "qplan triage item" 
-                        [l | mp <- manpower, let l = joinWith "\t" $ map show mp]
-
-
---------------------------------------------------------------------------------
--- Constructs stream of triages.
---
-getParams :: Stream -> Params
-getParams (Stream _ ls) = Params startDate endDate numWeeks schedSkills
-        where
-                params = splitOn "\t" (head ls)
-                startDate = stringToDay $ params !! 0
-                endDate = stringToDay $ params !! 1
-                schedSkills = splitOn ":" $ params !! 2
-                numWeeks = (/ 7.0) $ fromInteger ((diffDays endDate startDate) + 1) :: Float
-
-
--- =============================================================================
--- Internal functions -- Work scheduling
---
-
---------------------------------------------------------------------------------
--- Returns WorkDays given days and a holiday stream.
---
-getWorkdays :: [Day] -> Stream -> [WorkDay]
-getWorkdays days holidayStream = map (isWorkDay holidays) days
-        where
-                holidays = map stringToDay $ content holidayStream
-
-
---------------------------------------------------------------------------------
--- Estimates dev complete dates for work in each track.
---
---      This works by constructing schedule availability information for each
---      skill within each track and laying work out in order. The first track is
---      the "All" track which contains all work and all staff across all tracks.
---      The dev complete dates in the "All" track assume that all staff is
---      available to work on any work item. Thus, there are two estimates for
---      the dev complete date for an item: one where track boundaries are
---      respected, and one where they are not.
---
---      NOTE: The Params contains a schedSkills field which is used to schedule
---      work items against skill sets. This defines skills that are required for
---      development *not* QA or any other skill type.
---
-estimateEndDates :: [SkillName] -> TrackWork -> [Day] -> [SkillAvailabilities] ->
-                     [[Maybe Day]]
-estimateEndDates skills trackWork days trackStaffAvail = result
-        where
-                schedAvails = map (\avail -> (days, avail)) trackStaffAvail
-                result = zipWith (schedule skills) trackWork schedAvails
-
-
-
---------------------------------------------------------------------------------
--- Sums availability of staff for each track and skill group.
---
---      NOTE: This does not take individuals' vacations into account. That is
---      done by getManpower.
---
-getTrackStaffAvail :: [SkillName] -> [SkillName] -> [WorkDay] -> TrackStaff ->
-                      TrackStaffAvail
-getTrackStaffAvail allSkills skills workdays trackStaff = result
-        where
-                result = [avail | skillGroups <- trackStaff,
-                                let
-                                skillGroups' = filterSkills allSkills skills skillGroups
-                                getAvail = sumAvailability . map (getAvailability workdays)
-                                avail = map getAvail skillGroups'
-                         ]
-
-
---------------------------------------------------------------------------------
--- Filters a subset of skill items from a larger set.
---
-filterSkills :: [SkillName] -> [SkillName] -> [a] -> [a]
-filterSkills allSkills selectSkills items = result
-        where
-                pairs = zip allSkills items
-                f p acc = if (fst p) `elem` selectSkills
-                                then (snd p):acc
-                                else acc
-                result = foldr f [] pairs
-
-
-
 -- =============================================================================
 -- Internal functions -- Grouping functions
 --
@@ -334,6 +192,7 @@ staffByTrackSkills (all:tracks) skills staff = result
           staffByTrack = staff:staffByTrack'
           groupBySkills ps = map (\s -> filter (\p -> s == Person.skill p) ps) skills
           result = map groupBySkills staffByTrack
+
 
 
 -- =============================================================================
@@ -453,9 +312,153 @@ getTrackFeasibility skills manpower trackWork = result
                 result = zipWith (zipWith isFeasibile) trackAvail trackDemand
 
 
---------------------------------------------------------------------------------
--- Test function used during development.
+
+-- =============================================================================
+-- Internal functions -- Work scheduling
 --
+
+--------------------------------------------------------------------------------
+-- Returns WorkDays given days and a holiday stream.
+--
+getWorkdays :: [Day] -> Stream -> [WorkDay]
+getWorkdays days holidayStream = map (isWorkDay holidays) days
+        where
+                holidays = map stringToDay $ content holidayStream
+
+
+--------------------------------------------------------------------------------
+-- Estimates dev complete dates for work in each track.
+--
+--      This works by constructing schedule availability information for each
+--      skill within each track and laying work out in order. The first track is
+--      the "All" track which contains all work and all staff across all tracks.
+--      The dev complete dates in the "All" track assume that all staff is
+--      available to work on any work item. Thus, there are two estimates for
+--      the dev complete date for an item: one where track boundaries are
+--      respected, and one where they are not.
+--
+--      NOTE: The Params contains a schedSkills field which is used to schedule
+--      work items against skill sets. This defines skills that are required for
+--      development *not* QA or any other skill type.
+--
+estimateEndDates :: [SkillName] -> TrackWork -> [Day] -> [SkillAvailabilities] ->
+                     [[Maybe Day]]
+estimateEndDates skills trackWork days trackStaffAvail = result
+        where
+                schedAvails = map (\avail -> (days, avail)) trackStaffAvail
+                result = zipWith (schedule skills) trackWork schedAvails
+
+
+
+--------------------------------------------------------------------------------
+-- Sums availability of staff for each track and skill group.
+--
+--      NOTE: This does not take individuals' vacations into account. That is
+--      done by getManpower.
+--
+getTrackStaffAvail :: [SkillName] -> [SkillName] -> [WorkDay] -> TrackStaff ->
+                      TrackStaffAvail
+getTrackStaffAvail allSkills skills workdays trackStaff = result
+        where
+                result = [avail | skillGroups <- trackStaff,
+                                let
+                                skillGroups' = filterSkills allSkills skills skillGroups
+                                getAvail = sumAvailability . map (getAvailability workdays)
+                                avail = map getAvail skillGroups'
+                         ]
+
+
+--------------------------------------------------------------------------------
+-- Filters a subset of skill items from a larger set.
+--
+filterSkills :: [SkillName] -> [SkillName] -> [a] -> [a]
+filterSkills allSkills selectSkills items = result
+        where
+                pairs = zip allSkills items
+                f p acc = if (fst p) `elem` selectSkills
+                                then (snd p):acc
+                                else acc
+                result = foldr f [] pairs
+
+
+
+-- =============================================================================
+-- Internal functions -- Output stream generation
+--
+
+--------------------------------------------------------------------------------
+-- Constructs stream of work data.
+--
+getWorkStream :: ([Work], [Bool], [Maybe Day]) -> Stream
+getWorkStream (ws, fs, ds) = result
+        where
+                result = Stream "qplan track item" (zipWith3 format ws fs ds)
+                format w f d = joinWith "\t" [Work.track w,
+                                              show $ rank w,
+                                              show $ triage w,
+                                              Work.name w,
+                                              formatEstimate $ estimate w,
+                                              show f,
+                                              formatDay d]
+                formatDay d = if isNothing d
+                                then "DNF"
+                                else dayToString $ fromJust d
+
+
+--------------------------------------------------------------------------------
+-- Constructs stream of tracks.
+--
+--      Every list of items by tracks corresponds to these tracks in the same
+--      order.
+--
+getTrackGroupStream :: [[Person]] -> Stream
+getTrackGroupStream skillGroup = result
+        where
+                result = Stream "qplan track item" $ stack (map getSkillStream skillGroup)
+
+
+--------------------------------------------------------------------------------
+-- Constructs stream of skills.
+--
+--      Every list of items by skills corresponds to these skills in the same
+--      order.
+--
+getSkillStream :: [Person] -> Stream
+getSkillStream people = result
+        where
+                result = Stream "qplan skill item" (map Person.name people)
+
+--------------------------------------------------------------------------------
+-- Constructs stream of triages.
+--
+--      Every list of items by triage corresponds to these triage items in the
+--      same order.
+--
+getTriageStream :: TrackManpower -> Stream
+getTriageStream manpower = result
+        where
+                result = Stream "qplan triage item"
+                        [l | mp <- manpower, let l = joinWith "\t" $ map show mp]
+
+
+--------------------------------------------------------------------------------
+-- Constructs stream of triages.
+--
+getParams :: Stream -> Params
+getParams (Stream _ ls) = Params startDate endDate numWeeks schedSkills
+        where
+                params = splitOn "\t" (head ls)
+                startDate = stringToDay $ params !! 0
+                endDate = stringToDay $ params !! 1
+                schedSkills = splitOn ":" $ params !! 2
+                numWeeks = (/ 7.0) $ fromInteger ((diffDays endDate startDate) + 1) :: Float
+
+
+
+-- =============================================================================
+-- Internal functions -- Development/Debug support
+--
+
 test = do
         content <- readFile "_q4plan.txt"
         let result = filterString content
