@@ -94,12 +94,3 @@ getStream (s:ss) = (stream, rest)
                 (sdata, rest) = break (isJust . fromString) ss 
                 stream = Stream header $ map tail sdata
 getStream [] = (EmptyStream, [])
-
-
---------------------------------------------------------------------------------
--- Provides interface to State monad.
---
---      NOTE: This is essentially unused.
---
-nextState :: State [String] Stream
-nextState = state $ getStream
