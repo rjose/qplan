@@ -46,7 +46,6 @@ type TrackStaffAvail = [SkillAvailabilities] -- List of skill groups for each tr
 
 data Params = Params { startDate :: Day,
                        endDate :: Day,
-                       numWeeks :: Float,
                        schedSkills :: [String]
                      }
                      deriving (Show)
@@ -395,14 +394,12 @@ getTriageStream manpower = result
 -- Constructs stream of triages.
 --
 getParams :: Stream -> Params
-getParams (Stream _ ls) = Params startDate endDate numWeeks schedSkills
+getParams (Stream _ ls) = Params startDate endDate schedSkills
         where
                 params = splitOn "\t" (head ls)
                 startDate = stringToDay $ params !! 0
                 endDate = stringToDay $ params !! 1
                 schedSkills = splitOn ":" $ params !! 2
-                numWeeks = (/ 7.0) $ fromInteger ((diffDays endDate startDate) + 1) :: Float
-
 
 
 -- =============================================================================
