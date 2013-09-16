@@ -49,7 +49,10 @@ schedule skills work schedAvail = result
         where
                 (result, _) = runState (sched work) schedAvail
                 sched ws = do
-                        ds <- mapM (state . scheduleWork skills) ws
+                        ds' <- mapM (state . scheduleWork skills) ws
+                        let ds = zipWith (\d w -> if (estimate w == [SkillNone])
+                                                    then Nothing
+                                                    else d) ds' work
                         return ds
 
 

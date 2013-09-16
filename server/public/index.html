@@ -82,7 +82,8 @@
 
             <tr ng-repeat='work in work_items'
                class='feasible-{{work.feasible}}
-               in-triage-{{work.triage <= triage}}'>
+               dnf-{{work.end_date == "DNF"}}
+                      in-triage-{{work.triage <= triage}}'>
                <td class='field-rank'>#{{work.rank}}</td>
                <td class='field-triage'>{{work.triage}}</td>
                <td class='field-item'>{{work.name}}</td>
