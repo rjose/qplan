@@ -98,7 +98,6 @@ filterString s = if any isNothing [workStream, staffStream, holidayStream, param
                 trackStaff = staffByTrackSkills tracks skills staff
 
                 -- Compute resource demand and feasibility
-                sskills = schedSkills params
                 workDays = getWorkdays days (fromJust holidayStream)
                 trackStaffAvail = getTrackStaffAvail workDays trackStaff
                 trackManpower = getManpower trackStaffAvail
@@ -106,7 +105,8 @@ filterString s = if any isNothing [workStream, staffStream, holidayStream, param
                 trackFeasibility = getTrackFeasibility skills trackManpower trackWork
 
                 -- Schedule work based on track assignments
-                trackDates = estimateEndDates sskills trackWork days trackStaffAvail
+                trackDates = estimateEndDates (schedSkills params)
+                                              trackWork days trackStaffAvail
 
                 -- Generate result
                 trackStream = Stream "qplan tracks v1" tracks
