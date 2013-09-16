@@ -7,9 +7,9 @@ import Person
 
 testPerson :: Assertion
 testPerson = do
-       assertEqual "Parse person, no holidays" [] (holidays p1)
-       assertEqual "Parse person, one holiday" [oct4] (holidays p2)
-       assertEqual "Parse person, two holidays" [oct4, oct5] (holidays p3)
+       assertEqual "Parse person, no holidays" [] (vacation p1)
+       assertEqual "Parse person, one holiday" [oct4] (vacation p2)
+       assertEqual "Parse person, two holidays" [oct4, oct5] (vacation p3)
        where
                 oct4 = stringToDay "Oct 4, 2013"
                 oct5 = stringToDay "Oct 5, 2013"

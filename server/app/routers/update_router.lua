@@ -33,7 +33,6 @@ function UpdateRouter.router(req)
                 resource = req.path_pieces[RESOURCE_INDEX]
                 if resource == 'qplan' then
                         req.qplan.data = QPlanParser.parseLines(req.body:split("\n"))
-                        --req.qplan.data = Json.decode(req.body)
                         add_qplan_lookup_tables(req.qplan)
                         io.stderr:write("Finished updating qplan data\n")
 
