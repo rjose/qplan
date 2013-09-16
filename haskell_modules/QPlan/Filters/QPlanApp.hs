@@ -101,9 +101,8 @@ filterString s = if any isNothing [workStream, staffStream, holidayStream, param
                 -- Compute resource demand and feasibility
                 sskills = schedSkills params
                 workDays = getWorkdays days (fromJust holidayStream)
-                trackStaffAvail = getTrackStaffAvail skills sskills workDays trackStaff
-                trackManpower = getManpower (numWeeks params) skills trackStaff
-                                                              sskills trackStaffAvail
+                trackStaffAvail = getTrackStaffAvail workDays trackStaff
+                trackManpower = getManpower trackStaffAvail
                 trackDemand = getTrackDemand trackWork skills
                 trackFeasibility = getTrackFeasibility skills trackManpower trackWork
 
@@ -202,40 +201,9 @@ staffByTrackSkills (all:tracks) skills staff = result
 --------------------------------------------------------------------------------
 -- Computes manpower for track staff.
 --
-getManpower :: Float -> [SkillName] -> TrackStaff ->
-                        [SkillName] -> TrackStaffAvail -> TrackManpower
-getManpower numWeeks skills staff adjSkills avail = result
-        where
-        defaultManpower = [trackPower | trackStaff <- staff,
-                  let trackPower = map (foldr (\_ a -> a + numWeeks) 0) trackStaff]
-        result = adjustManpower skills defaultManpower adjSkills avail
-
-
---------------------------------------------------------------------------------
--- Applies adjusted manpower estimates to a default set.
---
---      This is used to adjust the manpower of skills used in dev complete work.
---
---      NOTE: This isn't quite right yet. We should be adjusting *all* skill
---      levels, not just the ones being used to do dev work. I need to revisit
---      this. Also, this is a yucky algorithm.
---
-adjustManpower :: [SkillName] -> TrackManpower -> [SkillName] ->
-                  [SkillAvailabilities] -> TrackManpower
-adjustManpower skills mp schedSkills avail = result
-        where
-                smp = [map (foldl (\a x -> a + (x/5.0)) 0) skillGroups |
-                        skillGroups <- avail]
-                result = zipWith f mp smp
-                f skillGroup skillGroup' = result'
-                        where
-                        mp' = zip skills skillGroup
-                        smp' = zip schedSkills skillGroup'
-                        result' = [m | s <- skills,
-                            let m' = lookup s smp'
-                                m = if isNothing m'
-                                        then fromJust $ lookup s mp'
-                                        else fromJust m']
+getManpower :: TrackStaffAvail -> TrackManpower
+getManpower avail = [map (foldl (\a x -> a + (x/5.0)) 0) skillGroups |
+                     skillGroups <- avail]
 
 
 --------------------------------------------------------------------------------
@@ -349,36 +317,18 @@ estimateEndDates skills trackWork days trackStaffAvail = result
                 result = zipWith (schedule skills) trackWork schedAvails
 
 
-
 --------------------------------------------------------------------------------
 -- Sums availability of staff for each track and skill group.
 --
 --      NOTE: This does not take individuals' vacations into account. That is
 --      done by getManpower.
 --
-getTrackStaffAvail :: [SkillName] -> [SkillName] -> [WorkDay] -> TrackStaff ->
-                      TrackStaffAvail
-getTrackStaffAvail allSkills skills workdays trackStaff = result
+getTrackStaffAvail :: [WorkDay] -> TrackStaff -> TrackStaffAvail
+getTrackStaffAvail workdays trackStaff = result
         where
-                result = [avail | skillGroups <- trackStaff,
+                result = [map getAvail skillGroups | skillGroups <- trackStaff,
                                 let
-                                skillGroups' = filterSkills allSkills skills skillGroups
-                                getAvail = sumAvailability . map (getAvailability workdays)
-                                avail = map getAvail skillGroups'
-                         ]
-
-
---------------------------------------------------------------------------------
--- Filters a subset of skill items from a larger set.
---
-filterSkills :: [SkillName] -> [SkillName] -> [a] -> [a]
-filterSkills allSkills selectSkills items = result
-        where
-                pairs = zip allSkills items
-                f p acc = if (fst p) `elem` selectSkills
-                                then (snd p):acc
-                                else acc
-                result = foldr f [] pairs
+                                getAvail = sumAvailability . map (getAvailability workdays)]
 
 
 
