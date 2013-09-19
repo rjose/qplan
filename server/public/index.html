@@ -37,6 +37,7 @@
             <span>Triage: </span>
             <input type='range' min='1' max='3' step='0.5' ng-model='triage' ng-change='triageChanged()'>
             <span>{{triage}}</span>
+            <p>{{num_triage}} out of {{work_items.length}}</p>
             <div chart id="chart"></div>
          </div>
 

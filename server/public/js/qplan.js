@@ -44,6 +44,7 @@ qplanModule.controller("QPlanCtrl",
             $scope.staff_by_skill = res.data.staff_by_skill;
             $scope.track = track;
             $scope.triage = triage;
+            $scope.num_triage = countNumTriage($scope.triage, $scope.work_items);
 
             setChartData($scope.track_stats, $scope.skills);
          },
@@ -83,6 +84,16 @@ qplanModule.controller("QPlanCtrl",
       //========================================================================
       // Internal functions
       //
+      function countNumTriage(triage, work_items) {
+         var result = 0;
+         for (var i=0; i < work_items.length; i++) {
+            if (work_items[i].triage <= triage) {
+               result++;
+            }
+         }
+         return result;
+      }
+
       function renderPath(path) {
          var fields = path.split("/");
          var track = fields[1];
