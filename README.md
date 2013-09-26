@@ -1,54 +1,31 @@
 qplan
 =====
+This contains the main logic behind the qplan filter which takes the following
+stream information:
 
-Starting a QPlan server
------------------------
+        - qplan params v1
+        - qplan holidays v1
+        - qplan staff v1
+        - qplan work v1
 
-To get spreadsheet data:
+and returns the following stream information:
 
-        . cat mobile_q3.ini | gcat.py > _q3_mobile.txt
+        - qplan params v1
+        - qplan tracks v1
+        - qplan skills v1
+        - qplan triages v1
+        - qplan track manpower v1
+        - qplan track-triage demand v1
+        - qplan track-skill staff v1
+        - qplan track work v1
 
-The mobile_q3.ini file should have a format like this:
+This computes staffing stats for each track and estimates schedule info for each
+work item taking into account holidays, staff vacations, and work estimates.
 
-        [raw work]
-        w1 = <worksheet key>:<spreadsheet index>
+This repo contains the qplan_server repo as a subtree. This pulls data from a
+snapshot service and is updated automatically via a 0mq system. See:
+https://gitli.corp.linkedin.com/rjose/q4mobile for an example of usage.
 
-        [raw staff]
-        s1 = <worksheet key>:<spreadsheet index>
-
-To condition the spreadsheet data into a form that the qplan filter can
-consume, you'll need to write your own script to convert it to known stream
-types. In this case, we'll need a
-link:https://github.com/rjose/stream-specs/blob/master/work.txt["qplan work
-v1"] stream and a
-link:https://github.com/rjose/stream-specs/blob/master/staff.txt["qplan staff
-v1"] stream. Once you have this script, you can do this:
-
-        . cat _q3_mobile.txt | q3mobile_to_qplan.py > _qplan.txt
-
-To get JSON data applicable for the qplan app, pipe the conditioned streams
-into the qplan filter:
-
-        . cat _qplan.txt | qplan > q3.json
-
-To start the web UI, do
-
-        . catserve -r=./server/ -p=8888
-        . cat q3.json | sed s/\'//g | curl -X POST -d @- localhost:8888/qplan
-
-
-Generating a status report
---------------------------
-NOTE: This will change to use the qplan filter
-
-This is how to generate a status report:
-
-        cat _status_data.txt | sed '/s/Soprano/Tenor/g' | qstatus.py -s
-
-This is how to generate a backlog report:
-
-        cat _status_data.txt | sed '/s/Soprano/Tenor/g' | qstatus.py -b
-
-This is a complete flow:
-
-        cat source2.ini | gcat.py | sed 's/Soprano/Tenor/g' | qstatus.py -s
+In order to use this tool, you must create a snapshot service, customizing a
+data conditioning script that takes raw input from sources and formats it as
+inputs to qplan as described above.
