@@ -1,0 +1,108 @@
+<!doctype html>
+
+<html ng-app="qplan">
+   <head>
+      <meta charset="UTF-8">
+      <title>QPlan Work</title>
+      <script src="./js/jquery.min.js"></script>
+      <script src="./js/angular.min.js"></script>
+      <script src="./js/d3.v3.min.js"></script>
+
+      <script src="./js/qplan.js"></script>
+      <script src="./js/charts.js"></script>
+      <script src="./js/charts/shortagechart.js"></script>
+      <link rel="stylesheet" href="./css/qplan.css">
+   </head>
+
+   <body ng-controller="QPlanCtrl">
+      <div class="wrapper">
+         <h1 id='main-heading'>QPlan</h1>
+
+         <section id='track-selector'>
+         <ul>
+            <li ng-repeat='t in tracks' class='selected-{{track == t}}'>
+            <a href='' ng-click='selectTrack(t)'>{{t}}</a>
+            </li>
+         </ul>
+         </section>
+
+      </div>
+
+      <div id='main-content' class="wrapper">
+         <section id='main'>
+         <h2>{{start_date}} to {{end_date}}</h2>
+         <h2>{{track}} Work</h2>
+
+         <div id='triage-slider'>
+            <span>Triage: </span>
+            <input type='range' min='1' max='3' step='0.5' ng-model='triage' ng-change='triageChanged()'>
+            <span>{{triage}}</span>
+            <p>{{num_triage}} out of {{work_items.length}}</p>
+            <div chart id="chart"></div>
+         </div>
+
+
+         <h3>Staffing Stats</h3>
+         <table class='stats'>
+            <tr>
+               <th></th>
+               <th ng-repeat='skill in skills' class='col-head'>
+                  {{skill}}
+               </th>
+            </tr>
+            <tr>
+               <th class='row-head'>Available</th>
+               <td ng-repeat='skill in skills'>
+                  {{track_stats.manpower[$index].toFixed(1)}}
+               </td>
+            </tr>
+            <tr>
+               <th class='row-head'>Required</th>
+               <td ng-repeat='skill in skills'>
+                  {{track_stats.demand[$index].toFixed(1)}}
+               </td>
+            </tr>
+            <tr class='net-left'>
+               <th class='row-head'>Net Left</th>
+               <td ng-repeat='skill in skills'
+                  class='understaffed-{{track_stats.net_avail[$index] <= 0}}'>
+                  {{track_stats.net_avail[$index].toFixed(1)}}
+               </td>
+            </tr>
+         </table>
+
+         <h3>Work Details</h3>
+         <table class='work-details'>
+            <tr>
+               <th class='field-rank'>Rank</th>
+               <th class='field-triage'>Tri.</th>
+               <th class='field-item'>Item</th>
+               <th class='field-estimates'>Estimates</th>
+               <th class='field-est-complete'>Dev Complete</th>
+            </tr>
+
+            <tr ng-repeat='work in work_items'
+               class='feasible-{{work.feasible}}
+               dnf-{{work.end_date == "DNF"}}
+                      in-triage-{{work.triage <= triage}}'>
+               <td class='field-rank'>#{{work.rank}}</td>
+               <td class='field-triage'>{{work.triage}}</td>
+               <td class='field-item'>{{work.name}}</td>
+               <td class='field-estimates'>{{work.estimate}}</td>
+               <td class='field-est-complete'>{{work.end_date.split(",")[0]}}</td>
+            </tr>
+         </table>
+         </section>
+
+         <section id='staff'>
+         <h2>{{track}} Staff</h2>
+         <div ng-repeat='skill in skills'>
+            <h3 class='enough-staff-{{track_stats.net_avail[$index] > 0}}'>{{skill}}</h3>
+            <ol>
+               <li ng-repeat='person in staff_by_skill[$index]'>{{person.name}}</li>
+            </ol>
+         </div>
+         </section>
+      </div>
+   </body>
+</html>

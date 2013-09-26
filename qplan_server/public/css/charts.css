@@ -1,0 +1,24 @@
+#main-content {
+        float: left;
+}
+
+#aux-content {
+        float: left;
+        margin-top: 72px;
+        margin-left: 50px;
+}
+
+#chart {
+        width: 500px;
+        height: 500px;
+}
+
+.visible-false {
+        display: none;
+}
+
+.x.axis .domain {
+        fill: none;
+        stroke-width: 2px;
+        stroke: black;
+}
