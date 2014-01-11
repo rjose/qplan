@@ -97,12 +97,15 @@ filterString s = if any isNothing [workStream, staffStream, holidayStream, param
                 trackWork = workByTrack tracks workItems
                 trackStaff = staffByTrackSkills tracks skills staff
 
+
                 -- Compute resource demand and feasibility
                 workDays = getWorkdays days (fromJust holidayStream)
                 trackStaffAvail = getTrackStaffAvail workDays trackStaff
                 trackManpower = getManpower trackStaffAvail
                 trackDemand = getTrackDemand trackWork skills
                 trackFeasibility = getTrackFeasibility skills trackManpower trackWork
+
+                trackShortage = getTrackShortage skills trackManpower trackWork
 
                 -- Schedule work based on track assignments
                 trackDates = estimateEndDates (schedSkills params)
@@ -122,9 +125,12 @@ filterString s = if any isNothing [workStream, staffStream, holidayStream, param
                 trackStaffStream = Stream "qplan track-skill staff v1" $
                         stack (map getTrackGroupStream trackStaff)
 
-                trackWork' = zip3 trackWork trackFeasibility trackDates
+                --trackWork' = zip3 trackWork trackFeasibility trackDates
+                --trackWorkStream = Stream "qplan track work v1" $
+                --        stack (map getWorkStream trackWork')
+                trackWork' = zip3 trackWork trackShortage trackDates
                 trackWorkStream = Stream "qplan track work v1" $
-                        stack (map getWorkStream trackWork')
+                        stack (map (getWorkStream2 skills) trackWork')
 
                 result = unlines $ stack [fromJust paramStream,
                                           trackStream, skillStream, triageStream,
@@ -278,6 +284,17 @@ getTrackFeasibility skills manpower trackWork = result
                 trackAvail = zipWith netAvail manpower trackDemand
                 result = zipWith (zipWith isFeasibile) trackAvail trackDemand
 
+getTrackShortage :: [SkillName] -> TrackManpower -> TrackWork -> [[[Maybe Float]]]
+getTrackShortage skills manpower trackWork = result
+        where
+                result = zipWith (zipWith computeShortage) trackAvail trackDemand
+                computeShortage as ds =
+                    zipWith (\a d -> if d > 0 && a < 0 then Just a else Nothing) as ds
+                trackAvail = zipWith netAvail manpower trackDemand
+                trackDemand = [map (getWorkManpower skills) ws| ws <- trackWork]
+                -- Use '-' to get running shortage total
+                clamp_subtract s d = if s <= 0.0 then 0.0 - d else s - d
+                netAvail mp ds = tail $ scanl (zipWith (clamp_subtract)) mp ds
 
 
 -- =============================================================================
@@ -342,17 +359,39 @@ getWorkStream :: ([Work], [Bool], [Maybe Day]) -> Stream
 getWorkStream (ws, fs, ds) = result
         where
                 result = Stream "qplan track item" (zipWith3 format ws fs ds)
-                format w f d = joinWith "\t" [Work.track w,
+                format w s d = joinWith "\t" [Work.track w,
                                               show $ rank w,
                                               show $ triage w,
                                               Work.name w,
                                               formatEstimate $ estimate w,
-                                              show f,
+                                              show fs,
                                               formatDay d]
                 formatDay d = if isNothing d
                                 then "DNF"
                                 else dayToString $ fromJust d
 
+getWorkStream2 :: [SkillName] -> ([Work], [[Maybe Float]], [Maybe Day]) -> Stream
+getWorkStream2 skills (ws, fs, ds) = result
+        where
+                result = Stream "qplan track item" (zipWith3 format ws fs ds)
+                format w f d = joinWith "\t" [Work.track w,
+                                              show $ rank w,
+                                              show $ triage w,
+                                              Work.name w,
+                                              formatEstimate $ estimate w,
+                                              formatShortage skills f,
+                                              formatDay d]
+                formatDay d = if isNothing d
+                                then "DNF"
+                                else dayToString $ fromJust d
+
+formatShortage :: [SkillName] -> [Maybe Float] -> String
+formatShortage skills shortages = result
+    where
+        result = intercalate ", " formatted_shortages
+        pairs = zip skills shortages
+        real_shortages = filter (\p -> isJust $ snd p) pairs
+        formatted_shortages = map (\p -> (fst p) ++ ":" ++ show (fromJust $ snd p)) real_shortages
 
 --------------------------------------------------------------------------------
 -- Constructs stream of tracks.
@@ -407,6 +446,6 @@ getParams (Stream _ ls) = Params startDate endDate schedSkills
 --
 
 test = do
-        content <- readFile "_q4plan.txt"
+        content <- readFile "cond_qplan.txt"
         let result = filterString content
         putStr result

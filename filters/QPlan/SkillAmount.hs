@@ -49,8 +49,7 @@ type Skill = String
 -- | Contains enough info to do arithmetic with skill amounts.
 --
 data SkillAmount
-        = SkillAmount {skill :: Skill,  strval :: String, numval :: Float}
-        | SkillSum {skill :: Skill, numval :: Float}
+        = SkillSum {skill :: Skill, numval :: Float}
         | SkillNone
         deriving (Eq, Ord)
 
@@ -63,7 +62,6 @@ numval' SkillNone = 0
 numval' s = numval s
 
 instance Show SkillAmount where
-        show (SkillAmount skill strval _) = skill ++ ":" ++ strval
         show (SkillSum skill numval) = skill ++ ":" ++ show numval
         show SkillNone = ""
 
@@ -77,14 +75,14 @@ instance Show SkillAmount where
 -- | Returns num staff that can work on this at once and the num weeks each.
 --
 requiredStaff :: SkillAmount -> (NumStaff, NumWeeks)
-requiredStaff (SkillAmount _ strval _) = result
+requiredStaff (SkillSum _ effort) = result
         where
-                len = length strval
-                (factor_str, unit) = splitAt (len - 1) strval
-                factor = if factor_str == ""
-                                then 1
-                                else read factor_str :: Float
-                result = (factor, amount unit)
+            min_chunk = 2.0 -- man-weeks
+            num_people = if effort <= min_chunk
+                then 1
+                else fromIntegral $ floor $ effort / min_chunk
+            weeks_per_person = effort / num_people
+            result = (num_people, weeks_per_person)
 
 --------------------------------------------------------------------------------
 -- | Reads multiple skill amounts from a string.
@@ -121,14 +119,14 @@ skillDifference ls rs = difference
 --------------------------------------------------------------------------------
 -- | Converts a string into a skill amount.
 --
---      The input is like "Native:4M"
+--      Can parse "Native:6.5"
 --
 fromString :: String -> SkillAmount
 fromString "" = SkillNone
-fromString s = SkillAmount skillname eststr estval
+fromString s = SkillSum skillname estval
         where
                 (skillname, _:eststr) = break (== ':') s
-                estval = amount eststr
+                estval = read eststr
 
 -- =============================================================================
 -- Internal functions
@@ -143,20 +141,20 @@ addSkillAmounts all@(s:ss) = SkillSum (skill' s) $
                                   foldl (\acc x -> acc + (numval' x)) 0 all
 
 
---------------------------------------------------------------------------------
--- Converts amount strings into week values.
---
---      The input is like "S" or "3M".
---
---      NOTE: The conversion values are currently hard-coded.
---
-amount :: String -> Float
-amount "S" = 1
-amount "M" = 2
-amount "L" = 3
-amount "Q" = 13
-amount s = factor * amount unit
-        where
-               len = length s
-               (factor_str, unit) = splitAt (len - 1) s
-               factor = read factor_str :: Float
+----------------------------------------------------------------------------------
+---- Converts amount strings into week values.
+----
+----      The input is like "S" or "3M".
+----
+----      NOTE: The conversion values are currently hard-coded.
+----
+--amount :: String -> Float
+--amount "S" = 1
+--amount "M" = 2
+--amount "L" = 3
+--amount "Q" = 13
+--amount s = factor * amount unit
+--        where
+--               len = length s
+--               (factor_str, unit) = splitAt (len - 1) s
+--               factor = read factor_str :: Float
